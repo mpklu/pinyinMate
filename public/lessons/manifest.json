@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-09-29T12:00:00Z",
+  "categories": [
+    {
+      "id": "beginner",
+      "name": "Beginner Lessons",
+      "description": "Basic Chinese texts for beginners",
+      "difficulty": "beginner",
+      "totalLessons": 3,
+      "estimatedTime": 45,
+      "lessons": [
+        {
+          "id": "greetings",
+          "title": "Basic Greetings",
+          "description": "Learn common Chinese greetings and introductions",
+          "source": {
+            "type": "local",
+            "path": "/lessons/beginner/greetings.json"
+          },
+          "metadata": {
+            "difficulty": "beginner",
+            "tags": ["greetings", "basic", "conversation"],
+            "characterCount": 45,
+            "estimatedTime": 15
+          }
+        },
+        {
+          "id": "family",
+          "title": "Family Members",
+          "description": "Learn to talk about family members in Chinese",
+          "source": {
+            "type": "local", 
+            "path": "/lessons/beginner/family.json"
+          },
+          "metadata": {
+            "difficulty": "beginner",
+            "tags": ["family", "relationships", "basic"],
+            "characterCount": 68,
+            "estimatedTime": 20
+          }
+        },
+        {
+          "id": "numbers",
+          "title": "Numbers 1-10",
+          "description": "Basic counting in Chinese",
+          "source": {
+            "type": "local",
+            "path": "/lessons/beginner/numbers.json"
+          },
+          "metadata": {
+            "difficulty": "beginner",
+            "tags": ["numbers", "counting", "basic"],
+            "characterCount": 30,
+            "estimatedTime": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "intermediate",
+      "name": "Intermediate Lessons", 
+      "description": "More complex Chinese texts for intermediate learners",
+      "difficulty": "intermediate",
+      "totalLessons": 2,
+      "estimatedTime": 60,
+      "lessons": [
+        {
+          "id": "weather",
+          "title": "Weather and Seasons",
+          "description": "Describe weather conditions and talk about seasons",
+          "source": {
+            "type": "local",
+            "path": "/lessons/intermediate/weather.json"
+          },
+          "metadata": {
+            "difficulty": "intermediate",
+            "tags": ["weather", "seasons", "nature"],
+            "characterCount": 120,
+            "estimatedTime": 30
+          }
+        },
+        {
+          "id": "shopping",
+          "title": "Shopping and Prices",
+          "description": "Learn vocabulary for shopping and asking about prices",
+          "source": {
+            "type": "local",
+            "path": "/lessons/intermediate/shopping.json"
+          },
+          "metadata": {
+            "difficulty": "intermediate",
+            "tags": ["shopping", "money", "conversation"],
+            "characterCount": 95,
+            "estimatedTime": 30
+          }
+        }
+      ]
+    }
+  ],
+  "remoteSources": [
+    {
+      "id": "github-lessons",
+      "name": "Community Lessons",
+      "baseUrl": "https://raw.githubusercontent.com/chinese-lessons/content/main/",
+      "authRequired": false,
+      "rateLimit": {
+        "requests": 100,
+        "windowMs": 3600000
+      }
+    }
+  ],
+  "settings": {
+    "cacheDuration": 3600000,
+    "maxCacheSize": 104857600,
+    "prefetchEnabled": true
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "id": "family",
+  "title": "Family Members",
+  "description": "Learn to talk about family members in Chinese",
+  "content": "这是我的家庭。我有爸爸、妈妈、哥哥和妹妹。我爱我的家人。我们一起住在上海。",
+  "metadata": {
+    "difficulty": "beginner",
+    "tags": ["family", "relationships", "basic", "home"],
+    "characterCount": 68,
+    "vocabulary": [
+      {
+        "word": "这是",
+        "pinyin": "zhè shì",
+        "definition": "this is",
+        "partOfSpeech": "phrase"
+      },
+      {
+        "word": "家庭",
+        "pinyin": "jiā tíng",
+        "definition": "family",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "有",
+        "pinyin": "yǒu",
+        "definition": "to have",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "爸爸",
+        "pinyin": "bà ba",
+        "definition": "father/dad",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "妈妈",
+        "pinyin": "mā ma",
+        "definition": "mother/mom",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "哥哥",
+        "pinyin": "gē ge",
+        "definition": "older brother",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "妹妹",
+        "pinyin": "mèi mei",
+        "definition": "younger sister",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "爱",
+        "pinyin": "ài",
+        "definition": "to love",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "家人",
+        "pinyin": "jiā rén",
+        "definition": "family members",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "一起",
+        "pinyin": "yì qǐ",
+        "definition": "together",
+        "partOfSpeech": "adverb"
+      },
+      {
+        "word": "住",
+        "pinyin": "zhù",
+        "definition": "to live/reside",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "上海",
+        "pinyin": "shàng hǎi",
+        "definition": "Shanghai",
+        "partOfSpeech": "proper noun"
+      }
+    ],
+    "grammarPoints": [
+      "Possession: 我有... (I have...)",
+      "Demonstrative: 这是... (This is...)", 
+      "Family relationships and terms",
+      "Expressing love: 我爱... (I love...)",
+      "Living arrangements: 住在... (live in...)"
+    ],
+    "culturalNotes": [
+      "Family is very important in Chinese culture",
+      "Specific terms exist for different family relationships (older vs younger siblings)",
+      "Multiple generations often live together in Chinese families"
+    ],
+    "estimatedTime": 20,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  }
+}

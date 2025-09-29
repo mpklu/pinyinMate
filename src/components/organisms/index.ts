@@ -3,10 +3,11 @@
  * Re-exports all organism components for easy importing
  */
 
-export { TextAnnotationPanel } from './TextAnnotationPanel';
-export { QuizContainer } from './QuizContainer';
-export { FlashcardDeck } from './FlashcardDeck';
 export { ExportPanel } from './ExportPanel';
+export { FlashcardDeck } from './FlashcardDeck';
+export { LessonBrowser } from './LessonBrowser';
+export { QuizContainer } from './QuizContainer';
+export { TextAnnotationPanel } from './TextAnnotationPanel';
 
 // Export all types
 export type { TextAnnotationPanelProps, AnnotationResult } from './TextAnnotationPanel';
