@@ -1,9 +1,9 @@
 /**
  * Accessibility tests for flashcard interactions
- * Ensures flashcard components meet WCAG 2.1 AA standards
+ * Tests WCAG 2.1 AA compliance, keyboard navigation, screen readers, and semantic markup
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import userEvent from '@testing-library/user-event';
@@ -15,7 +15,6 @@ import { FlashcardDeck } from '../../src/components/organisms/FlashcardDeck';
 import { FlashcardPage } from '../../src/components/templates/FlashcardPage';
 import { theme } from '../../src/theme/theme';
 import type { Flashcard } from '../../src/types/flashcard';
-import type { TextSegment } from '../../src/types/annotation';
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations);

@@ -98,8 +98,8 @@ As a Chinese language learner, I want to browse through organized collections of
 - **NFR-002**: System MUST complete lesson-to-lesson navigation within 1 second
 - **NFR-003**: System MUST generate sentence-level audio with latency under 500ms from user click to audio start
 - **NFR-004**: System MUST support responsive design from 320px mobile to 1920px desktop viewports
-- **NFR-005**: System MUST comply with WCAG 2.1 AA accessibility standards including keyboard navigation and screen reader support
-- **NFR-006**: System MUST validate all remote lesson data against schema to prevent XSS and injection attacks
+- **NFR-005**: System MUST comply with WCAG 2.1 AA accessibility standards including keyboard navigation, screen reader support, color contrast ratios ≥4.5:1, and focus management
+- **NFR-006**: System MUST validate all remote lesson data against JSON schema with content sanitization, URL validation, and file size limits (<10MB) to prevent XSS and injection attacks
 - **NFR-007**: System MUST support offline lesson access for previously loaded content
 - **NFR-008**: System MUST handle up to 50 lessons per library and 10 concurrent remote sources without performance degradation
 - **NFR-009**: System MUST maintain cross-browser compatibility with Chrome 90+, Safari 14+, Firefox 88+, and Edge 90+

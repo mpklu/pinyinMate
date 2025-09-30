@@ -4,13 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { LessonLibraryService } from '../../src/services/lessonLibraryService';
+import { LibraryService } from '../../src/services/libraryService';
 import type { 
-  LessonContent,
-  LessonSearchResult,
   RemoteSource,
-  SearchQuery,
-  CachedLesson,
 } from '../../src/types/library';
 
 // Mock fetch globally
@@ -523,6 +519,235 @@ describe('LibraryService Edge Cases', () => {
       // Should filter out corrupted lessons or provide defaults
       expect(library.lessons.length).toBeGreaterThan(0);
       expect(library.lessons.every(lesson => typeof lesson.title === 'string')).toBe(true);
+    });
+  });
+
+  describe('Security Validation (Enhanced)', () => {
+    it('should reject remote sources with malicious URLs', async () => {
+      const maliciousUrls = [
+        'javascript:alert("xss")',
+        'data:text/html,<script>alert("xss")</script>',
+        'file:///etc/passwd',
+        'ftp://malicious.com/payload',
+        'http://localhost:3000/../../../etc/passwd',
+      ];
+
+      for (const url of maliciousUrls) {
+        const source: RemoteSource = {
+          id: 'malicious',
+          name: 'Malicious Source',
+          url,
+          enabled: true,
+        };
+
+        await expect(service.addRemoteSource(source)).rejects.toThrow(
+          /Invalid URL scheme|Security violation/
+        );
+      }
+    });
+
+    it('should validate and sanitize lesson content to prevent XSS', async () => {
+      const xssContent = {
+        lessons: [{
+          id: 'xss-test',
+          title: 'Test <script>alert("xss")</script> Lesson',
+          content: 'Hello <img src="x" onerror="alert(1)"> World',
+          category: 'beginner',
+          difficulty: 'beginner',
+          vocabulary: [
+            {
+              chinese: '你好<script>alert("xss")</script>',
+              english: 'hello',
+              pinyin: 'nǐ hǎo',
+            },
+          ],
+          tags: ['<iframe src="javascript:alert(1)"></iframe>'],
+          estimatedTime: 10,
+        }]
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(xssContent),
+        headers: { get: () => 'application/json' },
+      });
+
+      const library = await service.loadLibrary();
+      const lesson = library.lessons.find(l => l.id === 'xss-test');
+
+      // Content should be sanitized
+      expect(lesson?.title).not.toContain('<script>');
+      expect(lesson?.content).not.toContain('onerror=');
+      expect(lesson?.vocabulary?.[0]?.chinese).not.toContain('<script>');
+      expect(lesson?.tags?.[0]).not.toContain('<iframe>');
+    });
+
+    it('should enforce file size limits for remote sources', async () => {
+      const createLargeResponse = (sizeMB: number) => ({
+        ok: true,
+        json: () => Promise.resolve({ 
+          lessons: [{ 
+            id: 'large', 
+            title: 'Large Lesson',
+            content: 'x'.repeat(sizeMB * 1024 * 1024),
+            category: 'beginner',
+            difficulty: 'beginner',
+            vocabulary: [],
+            tags: [],
+            estimatedTime: 10,
+          }] 
+        }),
+        headers: { 
+          get: (header: string) => {
+            if (header === 'content-length') return (sizeMB * 1024 * 1024).toString();
+            if (header === 'content-type') return 'application/json';
+            return null;
+          }
+        },
+      });
+
+      // Test 15MB content (should be rejected, limit is 10MB)
+      mockFetch.mockResolvedValueOnce(createLargeResponse(15));
+
+      const source: RemoteSource = {
+        id: 'large',
+        name: 'Large Source',
+        url: 'https://example.com/large.json',
+        enabled: true,
+      };
+
+      await expect(service.syncRemoteSource(source)).rejects.toThrow(
+        /File size exceeds|Too large/
+      );
+    });
+
+    it('should validate JSON schema for remote lesson data', async () => {
+      const invalidSchemas = [
+        // Missing required fields
+        { lessons: [{ id: 'test' }] },
+        // Wrong data types
+        { lessons: [{ 
+          id: 123, 
+          title: null, 
+          content: [], 
+          category: 'beginner',
+          difficulty: 'beginner'
+        }] },
+        // Invalid nested structure
+        { lessons: [{ 
+          id: 'test',
+          title: 'Test',
+          content: 'Content',
+          category: 'beginner',
+          difficulty: 'beginner',
+          vocabulary: 'not-an-array'
+        }] },
+      ];
+
+      for (const invalidData of invalidSchemas) {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(invalidData),
+          headers: { get: () => 'application/json' },
+        });
+
+        const source: RemoteSource = {
+          id: 'invalid',
+          name: 'Invalid Source',
+          url: 'https://example.com/invalid.json',
+          enabled: true,
+        };
+
+        await expect(service.syncRemoteSource(source)).rejects.toThrow(
+          /Invalid.*schema|Validation failed/
+        );
+      }
+    });
+
+    it('should handle and log security violations appropriately', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const suspiciousContent = {
+        lessons: [{
+          id: 'suspicious',
+          title: 'Suspicious Lesson',
+          content: 'onclick="maliciousFunction()" data-evil="payload"',
+          category: 'beginner',
+          difficulty: 'beginner',
+          vocabulary: [],
+          tags: [],
+          estimatedTime: 10,
+        }]
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(suspiciousContent),
+        headers: { get: () => 'application/json' },
+      });
+
+      await service.loadLibrary();
+
+      // Should log security warnings
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/Security warning|Suspicious content/)
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Enhanced Error Recovery', () => {
+    it('should gracefully degrade when remote sources are compromised', async () => {
+      // Simulate compromised remote source returning malicious data
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          lessons: 'this-should-be-an-array',
+          maliciousPayload: '<script>steal_data()</script>',
+        }),
+        headers: { get: () => 'application/json' },
+      });
+
+      const source: RemoteSource = {
+        id: 'compromised',
+        name: 'Compromised Source',
+        url: 'https://example.com/compromised.json',
+        enabled: true,
+      };
+
+      // Should not crash the service
+      await expect(service.syncRemoteSource(source)).rejects.toThrow();
+      
+      // Service should remain functional
+      const lessons = await service.getLessons();
+      expect(Array.isArray(lessons)).toBe(true);
+    });
+
+    it('should implement rate limiting for security', async () => {
+      const source: RemoteSource = {
+        id: 'rate-limit-test',
+        name: 'Rate Limit Test',
+        url: 'https://example.com/test.json',
+        enabled: true,
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ lessons: [] }),
+        headers: { get: () => 'application/json' },
+      });
+
+      // Make many rapid requests
+      const promises = Array.from({ length: 20 }, () => 
+        service.syncRemoteSource(source)
+      );
+
+      const results = await Promise.allSettled(promises);
+      const rejectedCount = results.filter(r => r.status === 'rejected').length;
+
+      // Some requests should be rate limited
+      expect(rejectedCount).toBeGreaterThan(0);
     });
   });
 });

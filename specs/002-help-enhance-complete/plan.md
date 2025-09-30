@@ -118,8 +118,8 @@ public/
 │   ├── manifest.json    # Local lesson library registry
 │   ├── beginner/        # Existing lesson files
 │   └── intermediate/    # Existing lesson files
-└── config/
-    └── remote-sources.json  # Predefined URI list
+src/config/
+└── remote-sources.json  # Predefined URI list
 
 tests/
 ├── contract/            # API contract tests for lesson loading

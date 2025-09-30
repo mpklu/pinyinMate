@@ -254,6 +254,10 @@ const LibraryPageWrapper = () => {
         items={demoLibraryItems}
         onItemSelect={() => {}}
         onItemOpen={() => {}}
+        onLessonStart={(lessonId) => {
+          console.log('Starting lesson (loading):', lessonId);
+          navigate(`/annotate?lessonId=${lessonId}`);
+        }}
         onCreateNew={() => {}}
         onNavigateBack={() => navigate(-1)}
         onNavigateHome={() => navigate('/')}
@@ -280,6 +284,11 @@ const LibraryPageWrapper = () => {
         } else if (item.type === 'flashcard-deck') {
           navigate(`/flashcards/${item.id}`);
         }
+      }}
+      onLessonStart={(lessonId) => {
+        console.log('Starting lesson:', lessonId);
+        // Navigate to annotation page for the lesson
+        navigate(`/annotate?lessonId=${lessonId}`);
       }}
       onCreateNew={(type) => {
         console.log('Creating new:', type);

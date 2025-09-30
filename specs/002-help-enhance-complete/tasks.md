@@ -48,7 +48,7 @@ Single-page web application structure:
 - [x] T002 [P] Create TypeScript interfaces in src/types/enhancedFlashcard.ts ✅
 - [x] T003 [P] Create TypeScript interfaces in src/types/enhancedQuiz.ts ✅
 - [x] T004 [P] Create TypeScript interfaces in src/types/enhancedLibrary.ts ✅
-- [x] T005 [P] Create remote sources configuration in src/config/remote-sources.json ✅
+- [x] T005 [P] Create predefined remote sources configuration with HSK, ChinesePod, and educational sources in src/config/remote-sources.json ✅
 - [x] T006 [P] Create local lesson manifest in src/config/library-manifest.json ✅
 
 ## Phase 3.2: Tests First (TDD) ✅ COMPLETED 
@@ -66,6 +66,7 @@ Single-page web application structure:
   - ✅ Search and filtering by category, difficulty, tags, vocabulary
   - ✅ Remote source management and synchronization
   - ✅ Cache management with TTL and size controls
+  - ✅ Security validation: JSON schema validation, content sanitization, URL validation, file size limits
   - ✅ Error handling and edge cases
   - ✅ End-to-end integration workflow
 - [ ] T019 [P] LessonService implementation in src/services/lessonService.ts 🚧
@@ -201,11 +202,11 @@ Single-page web application structure:
 - ✅ **Ready for final polish** and optimization phase
 
 ## Phase 3.10: Polish & Optimization 🎯 NEXT
-- [ ] T060 [P] Unit tests for LibraryService edge cases in tests/unit/library-service.test.ts
+- [ ] T060 [P] Unit tests for LibraryService edge cases with enhanced security validation in tests/unit/library-service.test.ts
 - [ ] T061 [P] Unit tests for LessonService edge cases in tests/unit/lesson-service.test.ts
 - [ ] T062 [P] Unit tests for AudioService fallbacks in tests/unit/audio-service.test.ts
-- [ ] T063 [P] Accessibility tests for flashcard interactions in tests/a11y/flashcard-a11y.test.ts
-- [ ] T064 [P] Accessibility tests for quiz interactions in tests/a11y/quiz-a11y.test.ts
+- [ ] T063 [P] Accessibility tests for flashcard interactions with WCAG 2.1 AA compliance in tests/a11y/flashcard-a11y.test.ts
+- [ ] T064 [P] Accessibility tests for quiz interactions with keyboard navigation in tests/a11y/quiz-a11y.test.ts
 - [ ] T065 [P] Mobile responsive design validation for library page in tests/e2e/mobile-library.test.ts
 - [ ] T066 [P] Mobile responsive design validation for lesson page in tests/e2e/mobile-lesson.test.ts
 - [ ] T067 [P] Performance testing for lesson loading (<3s) in tests/performance/lesson-loading.test.ts
@@ -218,6 +219,7 @@ Single-page web application structure:
 - [ ] T074 Run quickstart manual testing scenarios
 - [ ] T075 [P] Handle lessons without vocabulary gracefully in src/services/lessonService.ts
 - [ ] T076 [P] Implement duplicate lesson detection and resolution in src/services/libraryService.ts
+- [ ] T077 Implement offline lesson storage and caching per NFR-007 in src/services/offlineStorageService.ts
 
 ## Dependencies
 
@@ -225,6 +227,7 @@ Single-page web application structure:
 - **Setup Phase**: T001-T006 must complete before any other tasks
 - **TDD Gate**: T007-T017 (all tests) MUST complete and FAIL before T018-T023 (services)
 - **Service Foundation**: T018-T023 must complete before component integration (T047-T052)
+- **Offline Storage**: T077 depends on T018 (LibraryService) completion
 
 ### Component Dependencies
 - **Atomic → Molecules**: T024-T029 before T030-T035
@@ -392,10 +395,10 @@ Task: "Optimize bundle size with code splitting for lesson content"
 - ✅ Error handling requirements covered (T069-T070)
 
 ## Notes
-- **Total Tasks**: 76 tasks across 10 phases
-- **Completed Tasks**: 53 tasks (70% complete)
+- **Total Tasks**: 77 tasks across 10 phases (added T077 for offline storage)
+- **Completed Tasks**: 53 tasks (69% complete)
 - **Current Phase**: Phase 3.10 (Polish & Optimization) - Ready to start
-- **Parallel Opportunities**: 52 tasks marked [P] for concurrent execution
+- **Parallel Opportunities**: 53 tasks marked [P] for concurrent execution
 - **Critical Path**: Setup ✅ → Tests ✅ → Services ✅ → Atomic Components ✅ → Molecule Components ✅ → Organism Components ✅ → Template Components ✅ → Routing & Navigation ✅ → **Integration ✅** → Polish 🎯
 - **Estimated Duration**: 10-12 development days with parallel execution
 - **Key Risk Areas**: Audio API compatibility (T020, T062), Remote source loading (T018, T069)
