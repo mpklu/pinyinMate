@@ -10,6 +10,7 @@ export { QuizContainer } from './QuizContainer';
 export { TextAnnotationPanel } from './TextAnnotationPanel';
 
 // Export all types
+export type { LessonBrowserProps } from './LessonBrowser';
 export type { TextAnnotationPanelProps, AnnotationResult } from './TextAnnotationPanel';
 export type { QuizContainerProps, QuizProgress } from './QuizContainer';
 export type { FlashcardDeckProps } from './FlashcardDeck';
