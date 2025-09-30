@@ -1,0 +1,98 @@
+{
+  "id": "numbers",
+  "title": "Numbers 1-10",
+  "description": "Basic counting in Chinese",
+  "content": "一、二、三、四、五、六、七、八、九、十。我有三本书。",
+  "metadata": {
+    "difficulty": "beginner",
+    "tags": ["numbers", "counting", "basic", "math"],
+    "characterCount": 30,
+    "vocabulary": [
+      {
+        "word": "一",
+        "pinyin": "yī",
+        "definition": "one",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "二",
+        "pinyin": "èr",
+        "definition": "two",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "三",
+        "pinyin": "sān",
+        "definition": "three",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "四",
+        "pinyin": "sì",
+        "definition": "four",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "五",
+        "pinyin": "wǔ",
+        "definition": "five",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "六",
+        "pinyin": "liù",
+        "definition": "six",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "七",
+        "pinyin": "qī",
+        "definition": "seven",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "八",
+        "pinyin": "bā",
+        "definition": "eight",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "九",
+        "pinyin": "jiǔ",
+        "definition": "nine",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "十",
+        "pinyin": "shí",
+        "definition": "ten",
+        "partOfSpeech": "number"
+      },
+      {
+        "word": "本",
+        "pinyin": "běn",
+        "definition": "classifier for books",
+        "partOfSpeech": "classifier"
+      },
+      {
+        "word": "书",
+        "pinyin": "shū",
+        "definition": "book",
+        "partOfSpeech": "noun"
+      }
+    ],
+    "grammarPoints": [
+      "Basic numbers 1-10",
+      "Using classifiers with numbers: 三本书 (three books)",
+      "Numbers as adjectives before nouns"
+    ],
+    "culturalNotes": [
+      "The number 4 is considered unlucky because it sounds like 'death' (死)",
+      "The number 8 is considered very lucky in Chinese culture",
+      "Classifiers (measure words) are always used between numbers and nouns"
+    ],
+    "estimatedTime": 10,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  }
+}

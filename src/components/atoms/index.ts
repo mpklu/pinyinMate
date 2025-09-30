@@ -18,6 +18,22 @@ export type { LoadingSpinnerProps } from './LoadingSpinner';
 export { ErrorMessage } from './ErrorMessage';
 export type { ErrorMessageProps } from './ErrorMessage';
 
+export { LessonCard } from './LessonCard';
+
+export { CategorySelector } from './CategorySelector';
+
+export { LibrarySourceToggle } from './LibrarySourceToggle';
+
+export { SyncStatusIndicator } from './SyncStatusIndicator';
+
+export { AudioPlayButton } from './AudioPlayButton';
+
+export { SegmentHighlight } from './SegmentHighlight';
+export type { SegmentHighlightProps } from './SegmentHighlight';
+
+export { VocabularyTooltip } from './VocabularyTooltip';
+export type { VocabularyTooltipProps, VocabularyData } from './VocabularyTooltip';
+
 export { default as ChineseText } from './ChineseText';
 export type { ChineseTextProps } from './ChineseText';
 
@@ -29,3 +45,22 @@ export type { AudioButtonProps } from './AudioButton';
 
 export { default as DifficultyRating } from './DifficultyRating';
 export type { DifficultyRatingProps, DifficultyLevel } from './DifficultyRating';
+
+export { DifficultyBadge } from './DifficultyBadge';
+export type { DifficultyLevel as BadgeDifficultyLevel } from './DifficultyBadge';
+
+// Skeleton components for loading states
+export { LessonCardSkeleton } from './LessonCardSkeleton';
+export type { LessonCardSkeletonProps } from './LessonCardSkeleton';
+
+export { FlashcardSkeleton } from './FlashcardSkeleton';
+export type { FlashcardSkeletonProps } from './FlashcardSkeleton';
+
+export { QuizSkeleton } from './QuizSkeleton';
+export type { QuizSkeletonProps } from './QuizSkeleton';
+
+export { TextSegmentSkeleton } from './TextSegmentSkeleton';
+export type { TextSegmentSkeletonProps } from './TextSegmentSkeleton';
+
+export { LibraryGridSkeleton } from './LibraryGridSkeleton';
+export type { LibraryGridSkeletonProps } from './LibraryGridSkeleton';

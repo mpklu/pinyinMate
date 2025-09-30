@@ -22,9 +22,11 @@ import {
 } from '@mui/icons-material';
 
 import { FlashcardPreview } from '../molecules/FlashcardPreview';
+import { LoadingSpinner } from '../atoms/LoadingSpinner';
+import { ErrorMessage } from '../atoms/ErrorMessage';
 
-import type { TextSegment } from '../../types/annotation';
-import type { Flashcard } from '../../types/flashcard';
+import type { TextSegment, TextAnnotation } from '../../types/annotation';
+import type { Flashcard, FlashcardGenerateRequest } from '../../types/flashcard';
 
 // Styled components
 const DeckContainer = styled(Paper)(({ theme }) => ({
@@ -69,6 +71,10 @@ export interface FlashcardDeckProps {
   segments: TextSegment[];
   /** Pre-generated flashcards */
   flashcards?: Flashcard[];
+  /** Source annotation for advanced flashcard generation */
+  sourceAnnotation?: TextAnnotation;
+  /** Flashcard generation options */
+  generationOptions?: Partial<FlashcardGenerateRequest>;
   /** Deck title */
   title?: string;
   /** Show progress stats */
@@ -86,6 +92,8 @@ export interface FlashcardDeckProps {
 export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   segments,
   flashcards: initialFlashcards,
+  sourceAnnotation,
+  generationOptions,
   title,
   showStats = true,
   allowShuffle = true,
@@ -93,15 +101,19 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   onCardStudied,
   onDeckComplete,
 }) => {
-  // Generate flashcards from segments if not provided
-  const generateFlashcards = useCallback((): StudyFlashcard[] => {
+  // State for async flashcard generation
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+
+  // Fallback simple flashcard generation from segments
+  const generateSimpleFlashcards = useCallback((): StudyFlashcard[] => {
     return segments.map((segment, index) => ({
       id: `card_${segment.id || index}`,
       front: segment.text,
       back: {
         pinyin: segment.toneMarks || segment.pinyin,
         definition: segment.definition,
-        example: `Example with ${segment.text}`,
+        example: segment.definition ? `Example with ${segment.text}` : undefined,
       },
       sourceSegmentId: segment.id,
       srsData: {
@@ -117,6 +129,49 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     }));
   }, [segments]);
 
+  // Generate flashcards using SRS service if annotation is provided
+  const generateFlashcardsFromAnnotation = useCallback(async (): Promise<StudyFlashcard[]> => {
+    if (!sourceAnnotation) {
+      return generateSimpleFlashcards();
+    }
+
+    try {
+      setIsGenerating(true);
+      setGenerationError(null);
+
+      // Dynamic import for code splitting
+      const { generateFlashcards } = await import('../../services/srsService');
+
+      const request: FlashcardGenerateRequest = {
+        sourceAnnotationId: sourceAnnotation.id,
+        includeDefinitions: true,
+        includeExamples: false,
+        cardLimit: 20,
+        difficulty: 'intermediate',
+        tags: ['vocabulary', 'study'],
+        ...generationOptions,
+      };
+
+      const response = await generateFlashcards(request, sourceAnnotation);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to generate flashcards');
+      }
+
+      return response.data!.deck.cards.map(card => ({
+        ...card,
+        studied: false,
+      }));
+
+    } catch (error) {
+      console.error('Flashcard generation failed:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Unknown error');
+      return generateSimpleFlashcards();
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [sourceAnnotation, generationOptions, generateSimpleFlashcards]);
+
   // Convert initial flashcards to study format
   const convertToStudyCards = useCallback((cards: Flashcard[]): StudyFlashcard[] => {
     return cards.map(card => ({
@@ -126,12 +181,26 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   }, []);
 
   // State
-  const [flashcards, setFlashcards] = useState<StudyFlashcard[]>(
-    initialFlashcards ? convertToStudyCards(initialFlashcards) : generateFlashcards()
-  );
+  const [flashcards, setFlashcards] = useState<StudyFlashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [studyComplete, setStudyComplete] = useState(false);
+
+  // Initialize flashcards
+  useEffect(() => {
+    const initializeFlashcards = async () => {
+      if (initialFlashcards) {
+        setFlashcards(convertToStudyCards(initialFlashcards));
+      } else if (sourceAnnotation) {
+        const generatedCards = await generateFlashcardsFromAnnotation();
+        setFlashcards(generatedCards);
+      } else {
+        setFlashcards(generateSimpleFlashcards());
+      }
+    };
+
+    initializeFlashcards();
+  }, [initialFlashcards, sourceAnnotation, generateFlashcardsFromAnnotation, generateSimpleFlashcards, convertToStudyCards]);
 
   // Handle card study (correct/incorrect)
   const handleCardStudy = useCallback((correct: boolean) => {
@@ -200,14 +269,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     setStudyComplete(false);
   }, [flashcards]);
 
-  // Update flashcards when segments change
-  useEffect(() => {
-    if (!initialFlashcards && segments.length > 0) {
-      setFlashcards(generateFlashcards());
-      setCurrentIndex(0);
-      setStudyComplete(false);
-    }
-  }, [segments, initialFlashcards, generateFlashcards]);
+  // This useEffect is removed - flashcard initialization is now handled above
 
   // Calculate stats
   const studiedCards = flashcards.filter(card => card.studied);
@@ -217,6 +279,43 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     : 0;
 
   const currentCard = flashcards[currentIndex];
+
+  // Loading state
+  if (isGenerating) {
+    return (
+      <DeckContainer className={className}>
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center" 
+          py={6}
+        >
+          <LoadingSpinner size="large" />
+          <Typography variant="body1" sx={{ mt: 2 }} color="text.secondary">
+            Generating flashcards...
+          </Typography>
+        </Box>
+      </DeckContainer>
+    );
+  }
+
+  // Error state
+  if (generationError) {
+    return (
+      <DeckContainer className={className}>
+        <ErrorMessage 
+          message={`Failed to generate flashcards: ${generationError}`}
+          severity="warning"
+        />
+        {flashcards.length > 0 && (
+          <Typography variant="body2" sx={{ mt: 2 }} color="text.secondary">
+            Using fallback flashcards from segments.
+          </Typography>
+        )}
+      </DeckContainer>
+    );
+  }
 
   if (flashcards.length === 0) {
     return (

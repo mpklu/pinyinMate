@@ -1,0 +1,93 @@
+{
+  "id": "greetings",
+  "title": "Basic Greetings",
+  "description": "Learn common Chinese greetings and introductions",
+  "content": "你好！我是李明。很高兴认识你。你叫什么名字？我来自北京。",
+  "metadata": {
+    "difficulty": "beginner",
+    "tags": ["greetings", "basic", "conversation", "introductions"],
+    "characterCount": 45,
+    "vocabulary": [
+      {
+        "word": "你好",
+        "pinyin": "nǐ hǎo",
+        "definition": "hello",
+        "partOfSpeech": "greeting"
+      },
+      {
+        "word": "我是",
+        "pinyin": "wǒ shì",
+        "definition": "I am",
+        "partOfSpeech": "phrase"
+      },
+      {
+        "word": "很高兴",
+        "pinyin": "hěn gāo xìng",
+        "definition": "very happy/pleased",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "认识",
+        "pinyin": "rèn shi",
+        "definition": "to know/meet",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "叫",
+        "pinyin": "jiào",
+        "definition": "to be called",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "什么",
+        "pinyin": "shén me",
+        "definition": "what",
+        "partOfSpeech": "question word"
+      },
+      {
+        "word": "名字",
+        "pinyin": "míng zi",
+        "definition": "name",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "来自",
+        "pinyin": "lái zì",
+        "definition": "to come from",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "北京",
+        "pinyin": "běi jīng",
+        "definition": "Beijing",
+        "partOfSpeech": "proper noun"
+      }
+    ],
+    "grammarPoints": [
+      "Basic greetings: 你好 (hello)",
+      "Self-introduction: 我是... (I am...)",
+      "Expressing pleasure: 很高兴认识你 (Nice to meet you)",
+      "Asking for names: 你叫什么名字？ (What's your name?)",
+      "Stating origin: 我来自... (I come from...)"
+    ],
+    "culturalNotes": [
+      "Chinese people often shake hands when meeting for the first time",
+      "It's polite to introduce yourself with your full name",
+      "Asking about someone's hometown is a common conversation starter"
+    ],
+    "estimatedTime": 15,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  },
+  "audio": {
+    "url": "/audio/lessons/greetings.mp3",
+    "segments": [
+      {"start": 0, "end": 1.5, "text": "你好！"},
+      {"start": 2.0, "end": 4.2, "text": "我是李明。"},
+      {"start": 4.8, "end": 7.5, "text": "很高兴认识你。"},
+      {"start": 8.0, "end": 11.2, "text": "你叫什么名字？"},
+      {"start": 12.0, "end": 15.0, "text": "我来自北京。"}
+    ],
+    "duration": 15
+  }
+}

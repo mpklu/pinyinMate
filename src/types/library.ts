@@ -138,16 +138,152 @@ export interface AudioResponse {
   error?: string;
 }
 
-// Static content types
-export interface StaticLesson {
-  id: string;
-  title: string;
-  content: string; // Chinese text
+// Lesson library system types
+export interface LessonVocabulary {
+  word: string;
+  pinyin: string;
+  definition: string;
+  partOfSpeech?: string;
+}
+
+export interface AudioSegment {
+  start: number; // seconds
+  end: number; // seconds
+  text: string;
+}
+
+export interface LessonAudio {
+  url: string;
+  segments?: AudioSegment[];
+  duration?: number; // seconds
+}
+
+export interface LessonMetadata {
   difficulty: DifficultyLevel;
-  vocabulary: string[]; // key words
+  tags: string[];
+  characterCount: number;
+  vocabulary: LessonVocabulary[];
   grammarPoints?: string[];
   culturalNotes?: string[];
-  audioUrl?: string;
+  estimatedTime: number; // minutes
+  prerequisites?: string[];
+  author?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface LessonContent {
+  id: string;
+  title: string;
+  description?: string;
+  content: string; // Chinese text
+  metadata: LessonMetadata;
+  audio?: LessonAudio;
+}
+
+export interface LessonSource {
+  type: 'local' | 'remote';
+  path?: string; // for local files
+  url?: string; // for remote sources
+  headers?: Record<string, string>; // for remote authentication
+  cacheDuration?: number; // milliseconds
+}
+
+export interface LessonReference {
+  id: string;
+  title: string;
+  description?: string;
+  source: LessonSource;
+  metadata: Omit<LessonMetadata, 'vocabulary' | 'grammarPoints' | 'culturalNotes'>;
+}
+
+export interface LessonCategory {
+  id: string;
+  name: string;
+  description?: string;
+  difficulty: DifficultyLevel;
+  lessons: LessonReference[];
+  totalLessons: number;
+  estimatedTime: number; // total minutes for all lessons
+  prerequisites?: string[];
+}
+
+export interface RemoteSource {
+  id: string;
+  name: string;
+  baseUrl: string;
+  authRequired: boolean;
+  headers?: Record<string, string>;
+  rateLimit?: {
+    requests: number;
+    windowMs: number;
+  };
+}
+
+export interface ContentManifest {
+  version: string;
+  lastUpdated: Date;
+  categories: LessonCategory[];
+  remoteSources?: RemoteSource[];
+  settings?: {
+    cacheDuration: number;
+    maxCacheSize: number;
+    prefetchEnabled: boolean;
+  };
+}
+
+// Search and filtering
+export interface SearchQuery {
+  text?: string;
+  difficulty?: DifficultyLevel[];
+  tags?: string[];
+  category?: string;
+  minCharacterCount?: number;
+  maxCharacterCount?: number;
+  hasAudio?: boolean;
+}
+
+export interface LessonSearchResult {
+  lesson: LessonReference;
+  category: string;
+  relevanceScore: number;
+  matchedFields: string[];
+}
+
+// Cache management
+export interface CachedLesson {
+  content: LessonContent;
+  cachedAt: Date;
+  expiresAt: Date;
+  accessCount: number;
+  lastAccessed: Date;
+}
+
+export interface CacheStats {
+  totalItems: number;
+  totalSize: number; // bytes
+  hitRate: number; // percentage
+  oldestItem: Date;
+  newestItem: Date;
+}
+
+// Loading and validation
+export interface LoadingState {
+  isLoading: boolean;
+  progress?: number; // 0-100
+  stage?: 'fetching' | 'parsing' | 'validating' | 'caching';
+  error?: string;
+}
+
+export interface LessonValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+// Static content types (legacy - keep for backwards compatibility)
+export interface StaticLesson extends LessonContent {
+  vocabulary: string[]; // simplified version
 }
 
 export interface LessonCollection {

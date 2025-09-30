@@ -3,7 +3,7 @@
  * Simplified interactive quiz interface for Chinese text learning
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -16,8 +16,11 @@ import {
 } from '@mui/material';
 
 import { QuizQuestion } from '../molecules/QuizQuestion';
+import { LoadingSpinner } from '../atoms/LoadingSpinner';
+import { ErrorMessage } from '../atoms/ErrorMessage';
 
-import type { Quiz } from '../../types/quiz';
+import type { Quiz, QuizGenerateRequest } from '../../types/quiz';
+import type { TextAnnotation } from '../../types/annotation';
 
 // Styled components
 const QuizContainerStyled = styled(Paper)(({ theme }) => ({
@@ -58,7 +61,11 @@ export interface QuizProgress {
 
 export interface QuizContainerProps {
   /** Pre-generated quiz */
-  quiz: Quiz;
+  quiz?: Quiz;
+  /** Source annotation for dynamic quiz generation */
+  sourceAnnotation?: TextAnnotation;
+  /** Quiz generation options */
+  generationOptions?: Partial<QuizGenerateRequest>;
   /** Show progress bar */
   showProgress?: boolean;
   /** Custom CSS class */
@@ -67,17 +74,62 @@ export interface QuizContainerProps {
   onQuizComplete?: (results: QuizProgress) => void;
   /** Callback on question answer */
   onQuestionAnswer?: (questionId: string, correct: boolean, timeSpent: number) => void;
-
 }
 
 export const QuizContainer: React.FC<QuizContainerProps> = ({
-  quiz,
+  quiz: initialQuiz,
+  sourceAnnotation,  
+  generationOptions,
   showProgress = true,
   className,
   onQuizComplete,
   onQuestionAnswer,
 }) => {
-  // State
+  // State for quiz generation
+  const [quiz, setQuiz] = useState<Quiz | null>(initialQuiz || null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+
+  // Generate quiz if needed
+  useEffect(() => {
+    const generateQuizFromAnnotation = async () => {
+      if (initialQuiz || !sourceAnnotation) return;
+
+      try {
+        setIsGenerating(true);
+        setGenerationError(null);
+
+        // Dynamic import for code splitting
+        const { generateQuiz } = await import('../../services/quizService');
+
+        const request: QuizGenerateRequest = {
+          sourceAnnotationId: sourceAnnotation.id,
+          questionTypes: ['multiple-choice', 'fill-in-blank'],
+          questionCount: 10,
+          difficulty: 'intermediate',  
+          ...generationOptions,
+        };
+
+        const response = await generateQuiz(request, sourceAnnotation);
+
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to generate quiz');
+        }
+
+        setQuiz(response.data!.quiz);
+
+      } catch (error) {
+        console.error('Quiz generation failed:', error);
+        setGenerationError(error instanceof Error ? error.message : 'Unknown error');
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+
+    generateQuizFromAnnotation();
+  }, [initialQuiz, sourceAnnotation, generationOptions]);
+
+  // Quiz state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, boolean>>(new Map());
   const [isCompleted, setIsCompleted] = useState(false);
@@ -85,7 +137,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
 
   // Handle answer submission
   const handleAnswer = useCallback((answer: string | string[]) => {
-    if (currentQuestionIndex >= quiz.questions.length) return;
+    if (!quiz || currentQuestionIndex >= quiz.questions.length) return;
 
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const answerStr = Array.isArray(answer) ? answer.join(',') : answer;
@@ -143,12 +195,67 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
   }, []);
 
   // Calculate progress
-  const progressValue = isCompleted 
+  const progressValue = isCompleted || !quiz
     ? 100 
     : (currentQuestionIndex / quiz.questions.length) * 100;
 
   const correctAnswers = Array.from(answers.values()).filter(Boolean).length;
   const currentAccuracy = answers.size > 0 ? (correctAnswers / answers.size) * 100 : 0;
+
+  // Loading state
+  if (isGenerating) {
+    return (
+      <QuizContainerStyled className={className}>
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center" 
+          py={6}
+        >
+          <LoadingSpinner size="large" />
+          <Typography variant="body1" sx={{ mt: 2 }} color="text.secondary">
+            Generating quiz questions...
+          </Typography>
+        </Box>
+      </QuizContainerStyled>
+    );
+  }
+
+  // Error state
+  if (generationError) {
+    return (
+      <QuizContainerStyled className={className}>
+        <ErrorMessage 
+          message={`Failed to generate quiz: ${generationError}`}
+          severity="error"
+        />
+      </QuizContainerStyled>
+    );
+  }
+
+  // No quiz available
+  if (!quiz) {
+    return (
+      <QuizContainerStyled className={className}>
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center" 
+          py={6}
+          color="text.secondary"
+        >
+          <Typography variant="h6" gutterBottom>
+            No Quiz Available
+          </Typography>
+          <Typography variant="body2">
+            Please provide a quiz or source annotation to generate questions.
+          </Typography>
+        </Box>
+      </QuizContainerStyled>
+    );
+  }
 
   return (
     <QuizContainerStyled className={className}>
@@ -163,7 +270,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
             <Box flex={1}>
               <Box display="flex" justifyContent="space-between" mb={1}>
                 <Typography variant="body2" color="text.secondary">
-                  Question {Math.min(currentQuestionIndex + 1, quiz.questions.length)} of {quiz.questions.length}
+                  Question {Math.min(currentQuestionIndex + 1, quiz?.questions.length || 0)} of {quiz?.questions.length || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {Math.round(progressValue)}%
@@ -195,7 +302,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
       {/* Quiz content */}
       {!isCompleted ? (
         <QuestionContainer>
-          {currentQuestionIndex < quiz.questions.length && (
+          {quiz && currentQuestionIndex < quiz.questions.length && (
             <QuizQuestion
               question={quiz.questions[currentQuestionIndex]}
               questionNumber={currentQuestionIndex + 1}
@@ -216,7 +323,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
               {Math.round(currentAccuracy)}%
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {correctAnswers} out of {quiz.questions.length} correct
+              {correctAnswers} out of {quiz?.questions.length || 0} correct
             </Typography>
           </Box>
 

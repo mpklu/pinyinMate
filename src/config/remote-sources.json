@@ -1,0 +1,90 @@
+{
+  "sources": [
+    {
+      "id": "github-hsk",
+      "name": "GitHub HSK Lessons",
+      "type": "remote",
+      "enabled": true,
+      "priority": 1,
+      "config": {
+        "id": "github-hsk",
+        "name": "GitHub HSK Lessons",
+        "description": "Community-contributed HSK lessons from GitHub",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/chinese-lessons/hsk-content/main/manifest.json",
+        "lessons": [],
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2024-01-01T00:00:00.000Z",
+          "totalLessons": 0,
+          "categories": ["hsk1", "hsk2", "hsk3", "hsk4", "hsk5", "hsk6"],
+          "supportedFeatures": ["flashcards", "quizzes", "pinyin", "vocabulary"]
+        },
+        "syncInterval": 60,
+        "authentication": {
+          "type": "bearer",
+          "credentials": {
+            "token": "github_pat_example"
+          }
+        }
+      }
+    },
+    {
+      "id": "chinese-pod",
+      "name": "ChinesePod Lessons",
+      "type": "remote", 
+      "enabled": false,
+      "priority": 2,
+      "config": {
+        "id": "chinese-pod",
+        "name": "ChinesePod Lessons",
+        "description": "Professional Chinese lessons from ChinesePod",
+        "type": "remote",
+        "url": "https://api.chinesepod.com/v2/lessons/manifest",
+        "lessons": [],
+        "metadata": {
+          "version": "2.1.0",
+          "lastUpdated": "2024-01-01T00:00:00.000Z",
+          "totalLessons": 0,
+          "categories": ["newbie", "elementary", "intermediate", "upper-intermediate", "advanced"],
+          "supportedFeatures": ["flashcards", "quizzes", "audio", "pinyin", "vocabulary"]
+        },
+        "syncInterval": 120,
+        "authentication": {
+          "type": "apikey",
+          "credentials": {
+            "key": "your_api_key_here"
+          }
+        }
+      }
+    },
+    {
+      "id": "local-custom",
+      "name": "Local Custom Lessons",
+      "type": "local",
+      "enabled": true,
+      "priority": 0,
+      "config": {
+        "id": "local-custom",
+        "name": "Local Custom Lessons", 
+        "description": "User-created lessons stored locally",
+        "type": "local",
+        "manifestPath": "/public/lessons/manifest.json",
+        "lessons": [],
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2024-01-01T00:00:00.000Z",
+          "totalLessons": 0,
+          "categories": ["beginner", "intermediate", "advanced"],
+          "supportedFeatures": ["flashcards", "quizzes", "segmentation", "pinyin", "vocabulary"]
+        }
+      }
+    }
+  ],
+  "settings": {
+    "defaultCacheExpiry": 3600,
+    "maxCacheSize": 100,
+    "autoSync": true,
+    "defaultFeatures": ["flashcards", "quizzes", "pinyin"]
+  }
+}

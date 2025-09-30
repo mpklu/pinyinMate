@@ -1,0 +1,142 @@
+{
+  "id": "weather",
+  "title": "Weather and Seasons",
+  "description": "Describe weather conditions and talk about seasons",
+  "content": "今天天气很好，阳光明媚。春天来了，花儿开了。我喜欢温暖的天气。明天可能会下雨，记得带雨伞。冬天很冷，要穿厚衣服。",
+  "metadata": {
+    "difficulty": "intermediate",
+    "tags": ["weather", "seasons", "nature", "daily life"],
+    "characterCount": 120,
+    "vocabulary": [
+      {
+        "word": "今天",
+        "pinyin": "jīn tiān",
+        "definition": "today",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "天气",
+        "pinyin": "tiān qì",
+        "definition": "weather",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "阳光",
+        "pinyin": "yáng guāng",
+        "definition": "sunshine",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "明媚",
+        "pinyin": "míng mèi",
+        "definition": "bright and beautiful",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "春天",
+        "pinyin": "chūn tiān",
+        "definition": "spring",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "花儿",
+        "pinyin": "huār",
+        "definition": "flowers",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "开",
+        "pinyin": "kāi",
+        "definition": "to bloom/open",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "喜欢",
+        "pinyin": "xǐ huan",
+        "definition": "to like",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "温暖",
+        "pinyin": "wēn nuǎn",
+        "definition": "warm",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "明天",
+        "pinyin": "míng tiān",
+        "definition": "tomorrow",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "可能",
+        "pinyin": "kě néng",
+        "definition": "maybe/possibly",
+        "partOfSpeech": "adverb"
+      },
+      {
+        "word": "下雨",
+        "pinyin": "xià yǔ",
+        "definition": "to rain",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "记得",
+        "pinyin": "jì de",
+        "definition": "to remember",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "雨伞",
+        "pinyin": "yǔ sǎn",
+        "definition": "umbrella",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "冬天",
+        "pinyin": "dōng tiān",
+        "definition": "winter",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "冷",
+        "pinyin": "lěng",
+        "definition": "cold",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "穿",
+        "pinyin": "chuān",
+        "definition": "to wear",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "厚",
+        "pinyin": "hòu",
+        "definition": "thick",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "衣服",
+        "pinyin": "yī fu",
+        "definition": "clothes",
+        "partOfSpeech": "noun"
+      }
+    ],
+    "grammarPoints": [
+      "Weather descriptions: 天气很好 (the weather is nice)",
+      "Expressing possibility: 可能会... (might/may...)",
+      "Seasonal vocabulary and expressions",
+      "Imperatives: 记得... (remember to...)",
+      "Descriptive adjectives for weather conditions"
+    ],
+    "culturalNotes": [
+      "Chinese people often discuss weather as a conversation starter",
+      "Different regions of China have very different climates",
+      "Spring Festival (Chinese New Year) marks the beginning of spring"
+    ],
+    "estimatedTime": 30,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  }
+}

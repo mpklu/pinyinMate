@@ -24,5 +24,4 @@ dist-ssr
 *.sw?
 
 .github/
-.specify/
-specs/
+.specify/*

@@ -1,11 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 /**
- * Contract test for Quiz Generation interface
- * Tests the client-side API for generating quizzes from annotated content
+ * Enhanced Quiz API Contract Tests - TDD Style  
+ * Tests the client-side API for creating lesson-based quizzes with multiple question types
  * 
- * This test MUST FAIL initially - it defines the contract that implementation must fulfill
+ * These tests MUST FAIL initially - they define contracts that services must fulfill
+ * Only implement QuizService after these tests are written and failing
  */
+
+// Import types that will be implemented
+import type { QuizService } from '../../src/services/quizService';
+import type { LessonQuizQuestion, QuizGenerationConfig, QuizSession } from '../../src/types/enhancedQuiz';
+import type { Lesson, VocabularyEntry } from '../../src/types/lesson';
 
 // Mock the quiz generation service (will be implemented later)
 const mockQuizGenerationService = {

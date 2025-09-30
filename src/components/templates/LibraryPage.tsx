@@ -6,30 +6,31 @@ import {
   IconButton,
   Box,
   Paper,
-  Chip,
-  Stack,
-  TextField,
-  InputAdornment,
-  Fab,
-  Badge,
   Tab,
   Tabs,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  Chip,
+  Stack,
 } from '@mui/material';
 import {
   ArrowBack,
   Settings,
   Home,
-  Search,
-  Add,
-  ImportExport,
-  School,
-  Quiz as QuizIcon,
+  LibraryBooks,
   Description,
+  Quiz as QuizIcon,
+  School,
 } from '@mui/icons-material';
-import { ExportPanel } from '../organisms/ExportPanel';
+import { LessonBrowser } from '../organisms/LessonBrowser';
 import type { TextAnnotation } from '../../types/annotation';
 import type { Quiz } from '../../types/quiz';
 import type { Flashcard } from '../../types/flashcard';
+
+type TabType = 'all' | 'annotations' | 'quizzes' | 'flashcards' | 'lessons';
 
 export interface LibraryItem {
   id: string;
@@ -40,98 +41,55 @@ export interface LibraryItem {
   lastAccessed?: Date;
   tags?: string[];
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
-  itemCount?: number; // segments, questions, or cards
+  itemCount?: number;
   data: TextAnnotation | Quiz | Flashcard[];
 }
 
 export interface LibraryPageProps {
-  /** Library items to display */
-  items: LibraryItem[];
-  /** Current search query */
-  searchQuery?: string;
-  /** Current filter tags */
-  filterTags?: string[];
-  /** Current view tab */
-  currentTab?: 'all' | 'annotations' | 'quizzes' | 'flashcards';
-  /** Whether to show export panel */
-  showExportPanel?: boolean;
-  /** Selected items for bulk operations */
-  selectedItems?: string[];
-
-  /** Whether to show search */
-  showSearch?: boolean;
-  /** Whether to show filters */
+  items?: LibraryItem[];
+  currentTab?: TabType;
   showFilters?: boolean;
-  /** Callback when item is selected */
+  onTabChange?: (tab: TabType) => void;
   onItemSelect?: (itemId: string) => void;
-  /** Callback when item is opened */
   onItemOpen?: (item: LibraryItem) => void;
-
-  /** Callback when items are exported */
-  onItemsExport?: (itemIds: string[], format: 'pdf' | 'csv' | 'anki') => void;
-  /** Callback when search changes */
-  onSearchChange?: (query: string) => void;
-  /** Callback when filters change */
-  onFiltersChange?: (tags: string[]) => void;
-  /** Callback when tab changes */
-  onTabChange?: (tab: 'all' | 'annotations' | 'quizzes' | 'flashcards') => void;
-  /** Callback when creating new item */
+  // onItemsExport?: (itemIds: string[], format: 'pdf' | 'csv' | 'anki') => void; // TODO: Implement export functionality
   onCreateNew?: (type: 'annotation' | 'quiz' | 'flashcard-deck') => void;
-  /** Callback when navigating back */
+  onLessonStart?: (lessonId: string) => void;
+  onLessonPreview?: (lessonId: string) => void;
   onNavigateBack?: () => void;
-  /** Callback when navigating home */
   onNavigateHome?: () => void;
-  /** Callback when opening settings */
   onOpenSettings?: () => void;
 }
 
-/**
- * LibraryPage Template Component
- * 
- * A complete content management interface that combines the ExportPanel organism
- * with content browsing, searching, filtering, and organization capabilities.
- * Provides a comprehensive library experience for managing all study content.
- * 
- * Features:
- * - App bar with navigation and actions
- * - Tabbed interface for content types
- * - Search and filtering capabilities
- * - Grid layout for content browsing
- * - Export panel integration
- * - Bulk operations support
- * - Responsive design for all screen sizes
- * 
- * @param props - LibraryPage component props
- * @returns JSX.Element
- */
 export const LibraryPage: React.FC<LibraryPageProps> = ({
-  items,
-  searchQuery = '',
-  filterTags = [],
+  items = [],
   currentTab = 'all',
-  showExportPanel = false,
-  selectedItems = [],
-  showSearch = true,
   showFilters = true,
+  onTabChange,
   onItemSelect,
   onItemOpen,
-  onItemsExport,
-  onSearchChange,
-  onFiltersChange,
-  onTabChange,
+  // onItemsExport, // TODO: Implement export functionality
   onCreateNew,
+  onLessonStart,
+  onLessonPreview,
   onNavigateBack,
   onNavigateHome,
   onOpenSettings,
 }) => {
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
-  const [exportPanelOpen, setExportPanelOpen] = useState(showExportPanel);
+  const [localTab, setLocalTab] = useState(currentTab);
+
+  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: string) => {
+    const tab = newValue as TabType;
+    setLocalTab(tab);
+    onTabChange?.(tab);
+  }, [onTabChange]);
 
   // Filter items based on current tab
   const filteredItems = items.filter(item => {
-    if (currentTab === 'annotations') return item.type === 'annotation';
-    if (currentTab === 'quizzes') return item.type === 'quiz';
-    if (currentTab === 'flashcards') return item.type === 'flashcard-deck';
+    if (localTab === 'annotations') return item.type === 'annotation';
+    if (localTab === 'quizzes') return item.type === 'quiz';
+    if (localTab === 'flashcards') return item.type === 'flashcard-deck';
+    if (localTab === 'lessons') return false; // Lessons are handled separately
     return true; // 'all' tab
   });
 
@@ -143,29 +101,7 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
     flashcards: items.filter(item => item.type === 'flashcard-deck').length,
   };
 
-  const handleSearchSubmit = useCallback(() => {
-    onSearchChange?.(localSearchQuery);
-  }, [localSearchQuery, onSearchChange]);
-
-  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: string) => {
-    onTabChange?.(newValue as 'all' | 'annotations' | 'quizzes' | 'flashcards');
-  }, [onTabChange]);
-
-  const handleExportToggle = useCallback(() => {
-    setExportPanelOpen(prev => !prev);
-  }, []);
-
-  const handleItemClick = useCallback((item: LibraryItem) => {
-    if (selectedItems.includes(item.id)) {
-      // If item is selected, open it
-      onItemOpen?.(item);
-    } else {
-      // Otherwise, select it
-      onItemSelect?.(item.id);
-    }
-  }, [selectedItems, onItemSelect, onItemOpen]);
-
-  // Get icon for item type
+  // Helper functions
   const getItemIcon = (type: string) => {
     switch (type) {
       case 'annotation': return <Description />;
@@ -175,285 +111,179 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
     }
   };
 
-  // Get color for item type
-  const getItemColor = (type: string): 'primary' | 'secondary' | 'success' | 'default' => {
+  const getItemColor = (type: string): 'primary' | 'secondary' | 'success' => {
     switch (type) {
       case 'annotation': return 'primary';
       case 'quiz': return 'secondary';
       case 'flashcard-deck': return 'success';
-      default: return 'default';
+      default: return 'primary';
     }
   };
 
-  // Format date for display
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString(undefined, { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
+  const handleItemClick = useCallback((item: LibraryItem) => {
+    onItemOpen?.(item);
+  }, [onItemOpen]);
 
   return (
-    <Box sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* App Bar */}
-      <AppBar position="static" elevation={1}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <AppBar position="static" elevation={0}>
         <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={onNavigateBack}
-            aria-label="Go back"
-          >
+          <IconButton edge="start" color="inherit" onClick={onNavigateBack} sx={{ mr: 2 }}>
             <ArrowBack />
           </IconButton>
-          
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, ml: 1 }}>
-            Study Library
-          </Typography>
-
-          {/* Action buttons */}
-          <IconButton
-            color="inherit"
-            onClick={handleExportToggle}
-            aria-label="Export options"
-          >
-            <Badge badgeContent={selectedItems.length} color="secondary">
-              <ImportExport />
-            </Badge>
-          </IconButton>
-          
-          <IconButton
-            color="inherit"
-            onClick={onOpenSettings}
-            aria-label="Library settings"
-          >
-            <Settings />
-          </IconButton>
-          
-          <IconButton
-            color="inherit"
-            onClick={onNavigateHome}
-            aria-label="Go home"
-          >
-            <Home />
-          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>Library</Typography>
+          <IconButton color="inherit" onClick={onOpenSettings}><Settings /></IconButton>
+          <IconButton color="inherit" onClick={onNavigateHome}><Home /></IconButton>
         </Toolbar>
       </AppBar>
 
-      {/* Content Tabs */}
       <Paper elevation={0} square>
-        <Tabs 
-          value={currentTab} 
-          onChange={handleTabChange}
-          variant="fullWidth"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          <Tab 
-            label={`All (${tabCounts.all})`} 
-            value="all" 
-          />
-          <Tab 
-            label={`Texts (${tabCounts.annotations})`} 
-            value="annotations" 
-          />
-          <Tab 
-            label={`Quizzes (${tabCounts.quizzes})`} 
-            value="quizzes" 
-          />
-          <Tab 
-            label={`Cards (${tabCounts.flashcards})`} 
-            value="flashcards" 
-          />
+        <Tabs value={localTab} onChange={handleTabChange} variant="fullWidth">
+          <Tab label={`All (${tabCounts.all})`} value="all" />
+          <Tab label={`Texts (${tabCounts.annotations})`} value="annotations" />
+          <Tab label={`Quizzes (${tabCounts.quizzes})`} value="quizzes" />
+          <Tab label={`Cards (${tabCounts.flashcards})`} value="flashcards" />
+          <Tab label="Lessons" value="lessons" icon={<LibraryBooks />} />
         </Tabs>
       </Paper>
 
-      {/* Search and Filters */}
-      {showSearch && (
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 0 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <TextField
-              fullWidth
-              placeholder="Search your library..."
-              value={localSearchQuery}
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            
-            {showFilters && filterTags.length > 0 && (
-              <Stack direction="row" spacing={1}>
-                {filterTags.map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={tag}
-                    onDelete={() => {
-                      const newTags = filterTags.filter(t => t !== tag);
-                      onFiltersChange?.(newTags);
-                    }}
-                    size="small"
-                  />
-                ))}
-              </Stack>
-            )}
-          </Stack>
-        </Paper>
-      )}
-
-      {/* Content Grid */}
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)',
-              lg: 'repeat(4, 1fr)',
-            },
-            gap: 2,
-          }}
-        >
-          {filteredItems.map((item) => (
-            <Paper
-              key={item.id}
-                elevation={selectedItems.includes(item.id) ? 4 : 1}
-                sx={{
-                  p: 2,
-                  height: 200,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  bgcolor: selectedItems.includes(item.id) ? 'action.selected' : 'background.paper',
-                  '&:hover': {
-                    elevation: 3,
-                    bgcolor: 'action.hover',
-                  },
-                }}
-                onClick={() => handleItemClick(item)}
-              >
-                {/* Item Header */}
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                  {getItemIcon(item.type)}
-                  <Chip
-                    label={item.type}
-                    size="small"
-                    color={getItemColor(item.type)}
-                    variant="outlined"
-                  />
-                </Stack>
-
-                {/* Item Title */}
-                <Typography variant="h6" sx={{ mb: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {item.title}
-                </Typography>
-
-                {/* Item Description */}
-                {item.description && (
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
+        {localTab === 'lessons' ? (
+          <LessonBrowser
+            showFilters={showFilters}
+            onLessonStart={onLessonStart}
+            onLessonPreview={onLessonPreview}
+          />
+        ) : (
+          <>
+            <Grid container spacing={2}>
+              {filteredItems.map((item) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
+                  <Card 
                     sx={{ 
-                      mb: 2, 
-                      overflow: 'hidden', 
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        elevation: 4,
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.2s ease-in-out',
+                      },
                     }}
+                    onClick={() => handleItemClick(item)}
                   >
-                    {item.description}
-                  </Typography>
-                )}
-
-                {/* Item Footer */}
-                <Box sx={{ mt: 'auto' }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDate(item.createdAt)}
-                    </Typography>
-                    
-                    {item.itemCount && (
-                      <Typography variant="caption" color="text.secondary">
-                        {item.itemCount} items
-                      </Typography>
-                    )}
-                  </Stack>
-
-                  {/* Tags */}
-                  {item.tags && item.tags.length > 0 && (
-                    <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
-                      {item.tags.slice(0, 2).map((tag) => (
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                        {getItemIcon(item.type)}
                         <Chip
-                          key={tag}
-                          label={tag}
+                          label={item.type}
                           size="small"
+                          color={getItemColor(item.type)}
                           variant="outlined"
-                          sx={{ fontSize: '0.7rem', height: 20 }}
                         />
-                      ))}
-                      {item.tags.length > 2 && (
-                        <Typography variant="caption" color="text.secondary">
-                          +{item.tags.length - 2}
+                      </Stack>
+                      
+                      <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+                        {item.title}
+                      </Typography>
+                      
+                      {item.description && (
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          {item.description}
                         </Typography>
                       )}
-                    </Stack>
-                  )}
-                </Box>
-              </Paper>
-          ))}
-        </Box>
-
-        {/* Empty State */}
-        {filteredItems.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-              No items found
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {searchQuery ? 'Try adjusting your search terms' : 'Start by creating some content!'}
-            </Typography>
-          </Box>
+                      
+                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        {item.difficulty && (
+                          <Chip 
+                            label={item.difficulty} 
+                            size="small" 
+                            color={(() => {
+                              if (item.difficulty === 'beginner') return 'success';
+                              if (item.difficulty === 'intermediate') return 'warning';
+                              return 'error';
+                            })()}
+                          />
+                        )}
+                        {item.itemCount && (
+                          <Typography variant="caption" color="text.secondary">
+                            {item.itemCount} items
+                          </Typography>
+                        )}
+                      </Stack>
+                      
+                      {item.tags && item.tags.length > 0 && (
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                          {item.tags.slice(0, 3).map((tag) => (
+                            <Chip
+                              key={tag}
+                              label={tag}
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontSize: '0.7rem', height: 20 }}
+                            />
+                          ))}
+                          {item.tags.length > 3 && (
+                            <Typography variant="caption" color="text.secondary">
+                              +{item.tags.length - 3}
+                            </Typography>
+                          )}
+                        </Stack>
+                      )}
+                    </CardContent>
+                    
+                    <CardActions>
+                      <Button size="small" color="primary">
+                        Open
+                      </Button>
+                      {onItemSelect && (
+                        <Button size="small" onClick={(e) => {
+                          e.stopPropagation();
+                          onItemSelect(item.id);
+                        }}>
+                          Select
+                        </Button>
+                      )}
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            
+            {filteredItems.length === 0 && (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                  No items found
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {localTab === 'all' ? 'No content available yet.' : `No ${localTab} content available yet.`}
+                </Typography>
+                {onCreateNew && (
+                  <Button 
+                    variant="contained" 
+                    sx={{ mt: 2 }}
+                    onClick={() => {
+                      if (localTab === 'annotations') onCreateNew('annotation');
+                      else if (localTab === 'quizzes') onCreateNew('quiz');
+                      else if (localTab === 'flashcards') onCreateNew('flashcard-deck');
+                      else onCreateNew('annotation');
+                    }}
+                  >
+                    Create {localTab === 'all' ? 'Content' : localTab.slice(0, -1)}
+                  </Button>
+                )}
+              </Box>
+            )}
+          </>
         )}
       </Box>
-
-      {/* Export Panel */}
-      {exportPanelOpen && (
-        <Paper elevation={4} sx={{ m: 2, maxHeight: 300, overflow: 'auto' }}>
-          <ExportPanel
-            segments={[]} // Simplified export panel - would need actual segments
-            title="Export Selected Items"
-            availableFormats={['pdf', 'csv', 'txt']}
-            onExportStart={(format) => {
-              const formatMap = { pdf: 'pdf', csv: 'csv', txt: 'csv' } as const;
-              onItemsExport?.(selectedItems, formatMap[format] as 'pdf' | 'csv' | 'anki');
-            }}
-          />
-        </Paper>
-      )}
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-        }}
-        onClick={() => onCreateNew?.('annotation')}
-        aria-label="Create new content"
-      >
-        <Add />
-      </Fab>
     </Box>
   );
 };
+
+export default LibraryPage;

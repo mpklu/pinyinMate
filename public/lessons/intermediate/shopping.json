@@ -1,0 +1,112 @@
+{
+  "id": "shopping",
+  "title": "Shopping and Prices",
+  "description": "Learn vocabulary for shopping and asking about prices",
+  "content": "我想买一些水果。苹果多少钱一斤？这个太贵了。我要三个苹果和两个橙子。一共多少钱？谢谢！",
+  "metadata": {
+    "difficulty": "intermediate",
+    "tags": ["shopping", "money", "conversation", "food"],
+    "characterCount": 95,
+    "vocabulary": [
+      {
+        "word": "想",
+        "pinyin": "xiǎng",
+        "definition": "to want/think",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "买",
+        "pinyin": "mǎi",
+        "definition": "to buy",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "一些",
+        "pinyin": "yī xiē",
+        "definition": "some",
+        "partOfSpeech": "quantifier"
+      },
+      {
+        "word": "水果",
+        "pinyin": "shuǐ guǒ",
+        "definition": "fruit",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "苹果",
+        "pinyin": "píng guǒ",
+        "definition": "apple",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "多少钱",
+        "pinyin": "duō shao qián",
+        "definition": "how much money",
+        "partOfSpeech": "question phrase"
+      },
+      {
+        "word": "斤",
+        "pinyin": "jīn",
+        "definition": "Chinese pound (500g)",
+        "partOfSpeech": "classifier"
+      },
+      {
+        "word": "太",
+        "pinyin": "tài",
+        "definition": "too (excessive)",
+        "partOfSpeech": "adverb"
+      },
+      {
+        "word": "贵",
+        "pinyin": "guì",
+        "definition": "expensive",
+        "partOfSpeech": "adjective"
+      },
+      {
+        "word": "要",
+        "pinyin": "yào",
+        "definition": "to want",
+        "partOfSpeech": "verb"
+      },
+      {
+        "word": "个",
+        "pinyin": "gè",
+        "definition": "general classifier",
+        "partOfSpeech": "classifier"
+      },
+      {
+        "word": "橙子",
+        "pinyin": "chéng zi",
+        "definition": "orange",
+        "partOfSpeech": "noun"
+      },
+      {
+        "word": "一共",
+        "pinyin": "yí gòng",
+        "definition": "altogether/in total",
+        "partOfSpeech": "adverb"
+      },
+      {
+        "word": "谢谢",
+        "pinyin": "xiè xie",
+        "definition": "thank you",
+        "partOfSpeech": "phrase"
+      }
+    ],
+    "grammarPoints": [
+      "Expressing desire: 我想... (I want to...)",
+      "Asking about prices: 多少钱？ (How much?)",
+      "Using 太...了 to express 'too much'",
+      "Quantity expressions with classifiers",
+      "Shopping conversation patterns"
+    ],
+    "culturalNotes": [
+      "Bargaining is common in Chinese markets",
+      "Chinese people often buy fresh food daily from local markets",
+      "The 斤 (jin) is a traditional Chinese unit of weight (500 grams)"
+    ],
+    "estimatedTime": 30,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  }
+}
