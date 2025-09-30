@@ -179,9 +179,7 @@ function App() {
                       window.location.href = '/flashcards';
                     }
                   }}
-                  onItemsExport={(itemIds, format) => {
-                    console.log(`Exporting ${itemIds.length} items to ${format}`);
-                  }}
+
                   onCreateNew={(type) => {
                     console.log('Creating new:', type);
                     if (type === 'annotation') {

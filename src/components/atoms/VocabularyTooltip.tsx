@@ -26,7 +26,7 @@ export interface VocabularyData {
   pronunciation?: string;
 }
 
-interface VocabularyTooltipProps {
+export interface VocabularyTooltipProps {
   /** The child element that triggers the tooltip */
   children: React.ReactNode;
   /** Vocabulary data to display in the tooltip */

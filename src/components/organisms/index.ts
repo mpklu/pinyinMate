@@ -13,4 +13,4 @@ export { TextAnnotationPanel } from './TextAnnotationPanel';
 export type { TextAnnotationPanelProps, AnnotationResult } from './TextAnnotationPanel';
 export type { QuizContainerProps, QuizProgress } from './QuizContainer';
 export type { FlashcardDeckProps } from './FlashcardDeck';
-export type { ExportPanelProps, ExportFormat, ExportOptions } from './ExportPanel';
+export type { ExportPanelProps, ExportFormat as OrganismExportFormat, ExportOptions as OrganismExportOptions } from './ExportPanel';

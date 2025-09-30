@@ -153,12 +153,13 @@ const formatTime = (seconds: number): string => {
 };
 
 // Helper function to create audio source URL
-const createAudioUrl = (src: string | Blob): string => {
-  if (typeof src === 'string') {
-    return src;
-  }
-  return URL.createObjectURL(src);
-};
+// Utility function for creating audio URLs (currently unused)
+// const createAudioUrl = (src: string | Blob): string => {
+//   if (typeof src === 'string') {
+//     return src;
+//   }
+//   return URL.createObjectURL(src);
+// };
 
 /**
  * AudioPlayButton component

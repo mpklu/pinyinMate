@@ -132,7 +132,7 @@ const StyledStudyControls = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(1),
   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: `${Number(theme.shape.borderRadius) * 2}px`,
   padding: theme.spacing(1),
   backdropFilter: 'blur(4px)',
 }));

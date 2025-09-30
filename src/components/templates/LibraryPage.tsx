@@ -52,7 +52,7 @@ export interface LibraryPageProps {
   onTabChange?: (tab: TabType) => void;
   onItemSelect?: (itemId: string) => void;
   onItemOpen?: (item: LibraryItem) => void;
-  onItemsExport?: (itemIds: string[], format: 'pdf' | 'csv' | 'anki') => void;
+  // onItemsExport?: (itemIds: string[], format: 'pdf' | 'csv' | 'anki') => void; // TODO: Implement export functionality
   onCreateNew?: (type: 'annotation' | 'quiz' | 'flashcard-deck') => void;
   onLessonStart?: (lessonId: string) => void;
   onLessonPreview?: (lessonId: string) => void;
@@ -68,7 +68,7 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
   onTabChange,
   onItemSelect,
   onItemOpen,
-  onItemsExport,
+  // onItemsExport, // TODO: Implement export functionality
   onCreateNew,
   onLessonStart,
   onLessonPreview,
