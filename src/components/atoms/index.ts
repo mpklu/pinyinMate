@@ -48,3 +48,19 @@ export type { DifficultyRatingProps, DifficultyLevel } from './DifficultyRating'
 
 export { DifficultyBadge } from './DifficultyBadge';
 export type { DifficultyLevel as BadgeDifficultyLevel } from './DifficultyBadge';
+
+// Skeleton components for loading states
+export { LessonCardSkeleton } from './LessonCardSkeleton';
+export type { LessonCardSkeletonProps } from './LessonCardSkeleton';
+
+export { FlashcardSkeleton } from './FlashcardSkeleton';
+export type { FlashcardSkeletonProps } from './FlashcardSkeleton';
+
+export { QuizSkeleton } from './QuizSkeleton';
+export type { QuizSkeletonProps } from './QuizSkeleton';
+
+export { TextSegmentSkeleton } from './TextSegmentSkeleton';
+export type { TextSegmentSkeletonProps } from './TextSegmentSkeleton';
+
+export { LibraryGridSkeleton } from './LibraryGridSkeleton';
+export type { LibraryGridSkeletonProps } from './LibraryGridSkeleton';
