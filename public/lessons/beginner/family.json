@@ -7,78 +7,56 @@
     "difficulty": "beginner",
     "tags": ["family", "relationships", "basic", "home"],
     "characterCount": 68,
+    "source": "PinyinMate Sample Content",
+    "book": null,
     "vocabulary": [
       {
         "word": "这是",
-        "pinyin": "zhè shì",
-        "definition": "this is",
-        "partOfSpeech": "phrase"
+        "definition": "this is"
       },
       {
         "word": "家庭",
-        "pinyin": "jiā tíng",
-        "definition": "family",
-        "partOfSpeech": "noun"
+        "definition": "family"
       },
       {
         "word": "有",
-        "pinyin": "yǒu",
-        "definition": "to have",
-        "partOfSpeech": "verb"
+        "definition": "to have"
       },
       {
         "word": "爸爸",
-        "pinyin": "bà ba",
-        "definition": "father/dad",
-        "partOfSpeech": "noun"
+        "definition": "father/dad"
       },
       {
         "word": "妈妈",
-        "pinyin": "mā ma",
-        "definition": "mother/mom",
-        "partOfSpeech": "noun"
+        "definition": "mother/mom"
       },
       {
         "word": "哥哥",
-        "pinyin": "gē ge",
-        "definition": "older brother",
-        "partOfSpeech": "noun"
+        "definition": "older brother"
       },
       {
         "word": "妹妹",
-        "pinyin": "mèi mei",
-        "definition": "younger sister",
-        "partOfSpeech": "noun"
+        "definition": "younger sister"
       },
       {
         "word": "爱",
-        "pinyin": "ài",
-        "definition": "to love",
-        "partOfSpeech": "verb"
+        "definition": "to love"
       },
       {
         "word": "家人",
-        "pinyin": "jiā rén",
-        "definition": "family members",
-        "partOfSpeech": "noun"
+        "definition": "family members"
       },
       {
         "word": "一起",
-        "pinyin": "yì qǐ",
-        "definition": "together",
-        "partOfSpeech": "adverb"
+        "definition": "together"
       },
       {
         "word": "住",
-        "pinyin": "zhù",
-        "definition": "to live/reside",
-        "partOfSpeech": "verb"
+        "definition": "to live/reside"
       },
       {
         "word": "上海",
-        "pinyin": "shàng hǎi",
-        "definition": "Shanghai",
-        "partOfSpeech": "proper noun"
+        "definition": "Shanghai"
       }
     ],
     "grammarPoints": [

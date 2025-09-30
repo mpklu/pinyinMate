@@ -21,15 +21,20 @@ export interface Lesson {
   title: string;                // Display title
   description: string;          // Lesson description
   content: string;              // Chinese text content
-  metadata: LessonMetadata;     // Lesson metadata
-  vocabulary?: VocabularyEntry[]; // Optional vocabulary list
+  metadata: LessonMetadata;     // Lesson metadata (includes vocabulary)
+  audio?: AudioData;            // Optional audio data
 }
 
 export interface LessonMetadata {
-  category: string;             // e.g., "beginner", "intermediate"
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: number;        // Minutes to complete
   tags: string[];              // Searchable tags
+  characterCount: number;      // Number of Chinese characters in content
+  source: string;              // Content source attribution (publisher, URL, etc.)
+  book: string | null;         // Textbook reference if applicable
+  vocabulary: VocabularyEntry[]; // Vocabulary entries for the lesson
+  grammarPoints: string[];     // Key grammar concepts covered
+  culturalNotes: string[];     // Cultural context information
+  estimatedTime: number;       // Minutes to complete
   createdAt: Date;             // Creation timestamp
   updatedAt: Date;             // Last update timestamp
 }
@@ -55,6 +60,19 @@ export interface TextSegment {
   vocabulary?: VocabularyEntry[]; // Related vocabulary
   startIndex: number;          // Position in original text
   endIndex: number;            // End position in original text
+}
+
+// Audio data types
+export interface AudioData {
+  url: string;                 // Audio file URL or path
+  segments: AudioSegment[];    // Timed audio segments
+  duration: number;           // Total audio duration in seconds
+}
+
+export interface AudioSegment {
+  start: number;              // Start time in seconds
+  end: number;                // End time in seconds
+  text: string;               // Text corresponding to this audio segment
 }
 
 // Library management types

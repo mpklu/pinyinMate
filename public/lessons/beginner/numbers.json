@@ -7,78 +7,56 @@
     "difficulty": "beginner",
     "tags": ["numbers", "counting", "basic", "math"],
     "characterCount": 30,
+    "source": "PinyinMate Sample Content",
+    "book": null,
     "vocabulary": [
       {
         "word": "一",
-        "pinyin": "yī",
-        "definition": "one",
-        "partOfSpeech": "number"
+        "definition": "one"
       },
       {
         "word": "二",
-        "pinyin": "èr",
-        "definition": "two",
-        "partOfSpeech": "number"
+        "definition": "two"
       },
       {
         "word": "三",
-        "pinyin": "sān",
-        "definition": "three",
-        "partOfSpeech": "number"
+        "definition": "three"
       },
       {
         "word": "四",
-        "pinyin": "sì",
-        "definition": "four",
-        "partOfSpeech": "number"
+        "definition": "four"
       },
       {
         "word": "五",
-        "pinyin": "wǔ",
-        "definition": "five",
-        "partOfSpeech": "number"
+        "definition": "five"
       },
       {
         "word": "六",
-        "pinyin": "liù",
-        "definition": "six",
-        "partOfSpeech": "number"
+        "definition": "six"
       },
       {
         "word": "七",
-        "pinyin": "qī",
-        "definition": "seven",
-        "partOfSpeech": "number"
+        "definition": "seven"
       },
       {
         "word": "八",
-        "pinyin": "bā",
-        "definition": "eight",
-        "partOfSpeech": "number"
+        "definition": "eight"
       },
       {
         "word": "九",
-        "pinyin": "jiǔ",
-        "definition": "nine",
-        "partOfSpeech": "number"
+        "definition": "nine"
       },
       {
         "word": "十",
-        "pinyin": "shí",
-        "definition": "ten",
-        "partOfSpeech": "number"
+        "definition": "ten"
       },
       {
         "word": "本",
-        "pinyin": "běn",
-        "definition": "classifier for books",
-        "partOfSpeech": "classifier"
+        "definition": "classifier for books"
       },
       {
         "word": "书",
-        "pinyin": "shū",
-        "definition": "book",
-        "partOfSpeech": "noun"
+        "definition": "book"
       }
     ],
     "grammarPoints": [

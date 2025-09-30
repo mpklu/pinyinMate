@@ -7,90 +7,64 @@
     "difficulty": "intermediate",
     "tags": ["shopping", "money", "conversation", "food"],
     "characterCount": 95,
+    "source": "PinyinMate Sample Content",
+    "book": null,
     "vocabulary": [
       {
         "word": "想",
-        "pinyin": "xiǎng",
-        "definition": "to want/think",
-        "partOfSpeech": "verb"
+        "definition": "to want/think"
       },
       {
         "word": "买",
-        "pinyin": "mǎi",
-        "definition": "to buy",
-        "partOfSpeech": "verb"
+        "definition": "to buy"
       },
       {
         "word": "一些",
-        "pinyin": "yī xiē",
-        "definition": "some",
-        "partOfSpeech": "quantifier"
+        "definition": "some"
       },
       {
         "word": "水果",
-        "pinyin": "shuǐ guǒ",
-        "definition": "fruit",
-        "partOfSpeech": "noun"
+        "definition": "fruit"
       },
       {
         "word": "苹果",
-        "pinyin": "píng guǒ",
-        "definition": "apple",
-        "partOfSpeech": "noun"
+        "definition": "apple"
       },
       {
         "word": "多少钱",
-        "pinyin": "duō shao qián",
-        "definition": "how much money",
-        "partOfSpeech": "question phrase"
+        "definition": "how much money"
       },
       {
         "word": "斤",
-        "pinyin": "jīn",
-        "definition": "Chinese pound (500g)",
-        "partOfSpeech": "classifier"
+        "definition": "Chinese pound (500g)"
       },
       {
         "word": "太",
-        "pinyin": "tài",
-        "definition": "too (excessive)",
-        "partOfSpeech": "adverb"
+        "definition": "too (excessive)"
       },
       {
         "word": "贵",
-        "pinyin": "guì",
-        "definition": "expensive",
-        "partOfSpeech": "adjective"
+        "definition": "expensive"
       },
       {
         "word": "要",
-        "pinyin": "yào",
-        "definition": "to want",
-        "partOfSpeech": "verb"
+        "definition": "to want"
       },
       {
         "word": "个",
-        "pinyin": "gè",
-        "definition": "general classifier",
-        "partOfSpeech": "classifier"
+        "definition": "general classifier"
       },
       {
         "word": "橙子",
-        "pinyin": "chéng zi",
-        "definition": "orange",
-        "partOfSpeech": "noun"
+        "definition": "orange"
       },
       {
         "word": "一共",
-        "pinyin": "yí gòng",
-        "definition": "altogether/in total",
-        "partOfSpeech": "adverb"
+        "definition": "altogether/in total"
       },
       {
         "word": "谢谢",
-        "pinyin": "xiè xie",
-        "definition": "thank you",
-        "partOfSpeech": "phrase"
+        "definition": "thank you"
       }
     ],
     "grammarPoints": [
