@@ -31,6 +31,9 @@ export { AudioPlayButton } from './AudioPlayButton';
 export { SegmentHighlight } from './SegmentHighlight';
 export type { SegmentHighlightProps } from './SegmentHighlight';
 
+export { VocabularyTooltip } from './VocabularyTooltip';
+export type { VocabularyTooltipProps, VocabularyData } from './VocabularyTooltip';
+
 export { default as ChineseText } from './ChineseText';
 export type { ChineseTextProps } from './ChineseText';
 
@@ -42,3 +45,6 @@ export type { AudioButtonProps } from './AudioButton';
 
 export { default as DifficultyRating } from './DifficultyRating';
 export type { DifficultyRatingProps, DifficultyLevel } from './DifficultyRating';
+
+export { DifficultyBadge } from './DifficultyBadge';
+export type { DifficultyLevel as BadgeDifficultyLevel } from './DifficultyBadge';
