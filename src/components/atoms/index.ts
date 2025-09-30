@@ -26,6 +26,11 @@ export { LibrarySourceToggle } from './LibrarySourceToggle';
 
 export { SyncStatusIndicator } from './SyncStatusIndicator';
 
+export { AudioPlayButton } from './AudioPlayButton';
+
+export { SegmentHighlight } from './SegmentHighlight';
+export type { SegmentHighlightProps } from './SegmentHighlight';
+
 export { default as ChineseText } from './ChineseText';
 export type { ChineseTextProps } from './ChineseText';
 
