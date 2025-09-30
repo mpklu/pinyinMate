@@ -18,6 +18,14 @@ export type { LoadingSpinnerProps } from './LoadingSpinner';
 export { ErrorMessage } from './ErrorMessage';
 export type { ErrorMessageProps } from './ErrorMessage';
 
+export { LessonCard } from './LessonCard';
+
+export { CategorySelector } from './CategorySelector';
+
+export { LibrarySourceToggle } from './LibrarySourceToggle';
+
+export { SyncStatusIndicator } from './SyncStatusIndicator';
+
 export { default as ChineseText } from './ChineseText';
 export type { ChineseTextProps } from './ChineseText';
 

@@ -1,13 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 /**
- * Contract test for Audio synthesis interface
- * Tests the client-side API for generating and playing Chinese audio
+ * Enhanced Audio API Contract Tests - TDD Style
+ * Tests the client-side API for generating and playing Chinese audio for lessons
  * 
- * This test MUST FAIL initially - it defines the contract that implementation must fulfill
+ * These tests MUST FAIL initially - they define contracts that services must fulfill
+ * Only implement AudioService after these tests are written and failing
  */
 
-// Mock the audio service (will be implemented later)
+// Import types that will be implemented
+import type { AudioService } from '../../src/services/audioService';
+import type { TextSegment, VocabularyEntry } from '../../src/types/lesson';
+
+// Mock the enhanced audio service (will be implemented later)
 const mockAudioService = {
   synthesize: vi.fn(),
   getSegmentAudio: vi.fn(),

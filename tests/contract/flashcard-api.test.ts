@@ -1,11 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 /**
- * Contract test for Flashcard SRS interface
- * Tests the client-side API for generating flashcards and managing SRS scheduling
+ * Enhanced Flashcard API Contract Tests - TDD Style
+ * Tests the client-side API for creating lesson-based flashcards with SRS
  * 
- * This test MUST FAIL initially - it defines the contract that implementation must fulfill
+ * These tests MUST FAIL initially - they define contracts that services must fulfill
+ * Only implement FlashcardService after these tests are written and failing
  */
+
+// Import types that will be implemented
+import type { FlashcardService } from '../../src/services/flashcardService';
+import type { LessonFlashcard, FlashcardGenerationConfig } from '../../src/types/enhancedFlashcard';
+import type { Lesson, VocabularyEntry } from '../../src/types/lesson';
 
 // Mock the flashcard SRS service (will be implemented later)
 const mockFlashcardSRSService = {
