@@ -6,11 +6,13 @@
 export { ExportPanel } from './ExportPanel';
 export { FlashcardDeck } from './FlashcardDeck';
 export { LessonBrowser } from './LessonBrowser';
+export { Navigation } from './Navigation';
 export { QuizContainer } from './QuizContainer';
 export { TextAnnotationPanel } from './TextAnnotationPanel';
 
 // Export all types
 export type { LessonBrowserProps } from './LessonBrowser';
+export type { NavigationProps } from './Navigation';
 export type { TextAnnotationPanelProps, AnnotationResult } from './TextAnnotationPanel';
 export type { QuizContainerProps, QuizProgress } from './QuizContainer';
 export type { FlashcardDeckProps } from './FlashcardDeck';

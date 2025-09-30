@@ -25,6 +25,7 @@ import {
 
 import { ChineseText, PinyinText, AudioButton, DifficultyRating } from '../atoms';
 import type { Flashcard } from '../../types/flashcard';
+import { pinyinService } from '../../services/pinyinService';
 
 
 interface FlashcardViewProps {
@@ -166,7 +167,26 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 }) => {
   const [currentSide, setCurrentSide] = useState<'front' | 'back'>(initialSide);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [generatedPinyin, setGeneratedPinyin] = useState<string | null>(null);
   const autoFlipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate pinyin if not provided in flashcard data
+  React.useEffect(() => {
+    const generatePinyinForFlashcard = async () => {
+      if (!flashcard.back.pinyin && flashcard.front) {
+        try {
+          const pinyinResult = await pinyinService.generateToneMarks(flashcard.front);
+          if (pinyinResult && pinyinResult.trim().length > 0) {
+            setGeneratedPinyin(pinyinResult);
+          }
+        } catch (error) {
+          console.warn('Failed to generate pinyin for flashcard:', error);
+        }
+      }
+    };
+
+    generatePinyinForFlashcard();
+  }, [flashcard.front, flashcard.back.pinyin]);
 
   const handleFlip = () => {
     if (isFlipping) return;
@@ -270,9 +290,9 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         {/* Back Side */}
         <StyledCardSide side="back">
           {/* Pinyin */}
-          {flashcard.back.pinyin && (
+          {(flashcard.back.pinyin || generatedPinyin) && (
             <PinyinText
-              pinyin={flashcard.back.pinyin}
+              pinyin={flashcard.back.pinyin || generatedPinyin || ''}
               showToneMarks={true}
               initiallyVisible={true}
               showToggle={false}
