@@ -95,12 +95,13 @@ const StyledFlipCard = styled(Card, {
 }));
 
 const StyledCardSide = styled(CardContent, {
-  shouldForwardProp: (prop) => prop !== 'side',
-})<{ side: 'front' | 'back' }>(({ theme, side }) => ({
+  shouldForwardProp: (prop) => prop !== 'side' && prop !== 'isFlipped',
+})<{ side: 'front' | 'back'; isFlipped: boolean }>(({ theme, side, isFlipped }) => ({
   position: 'absolute',
+  top: 0,
+  left: 0,
   width: '100%',
   height: '100%',
-  backfaceVisibility: 'hidden',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
@@ -108,6 +109,11 @@ const StyledCardSide = styled(CardContent, {
   textAlign: 'center',
   padding: theme.spacing(2),
   boxSizing: 'border-box',
+  backgroundColor: theme.palette.background.paper,
+  
+  // Use opacity instead of backfaceVisibility for more reliable hiding
+  opacity: (side === 'front' && !isFlipped) || (side === 'back' && isFlipped) ? 1 : 0,
+  pointerEvents: (side === 'front' && !isFlipped) || (side === 'back' && isFlipped) ? 'auto' : 'none',
   
   ...(side === 'back' && {
     transform: 'rotateY(180deg)',
@@ -240,7 +246,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         elevation={4}
       >
         {/* Front Side */}
-        <StyledCardSide side="front">
+        <StyledCardSide side="front" isFlipped={isShowingBack}>
+          {/* TEST: This should only show on FRONT */}
+          <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'red', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000 }}>
+            FRONT SIDE
+          </div>
           {/* Tags */}
           {flashcard.tags && flashcard.tags.length > 0 && (
             <StyledTagsContainer>
@@ -278,7 +288,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         </StyledCardSide>
 
         {/* Back Side */}
-        <StyledCardSide side="back">
+        <StyledCardSide side="back" isFlipped={isShowingBack}>
+          {/* TEST: This should only show on BACK */}
+          <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'green', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000 }}>
+            BACK SIDE
+          </div>
           {/* Debug info - remove this later */}
           {process.env.NODE_ENV === 'development' && (
             <Box sx={{ position: 'absolute', top: 0, left: 0, fontSize: '10px', color: 'red' }}>
