@@ -279,6 +279,97 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 
   const isShowingBack = currentSide === 'back';
 
+  // Helper function to calculate responsive font sizes for Chinese text
+  const getChineseFontSizes = () => {
+    const sizeMap = {
+      small: {
+        xs: '1.25rem',
+        sm: '1.5rem',
+        md: '1.75rem',
+        lg: '2rem',
+        xl: '2.25rem',
+      },
+      medium: {
+        xs: '1.5rem',
+        sm: '1.875rem',
+        md: '2.25rem',
+        lg: '2.5rem',
+        xl: '2.875rem',
+      },
+      large: {
+        xs: '1.75rem',
+        sm: '2.25rem',
+        md: '2.75rem',
+        lg: '3.25rem',
+        xl: '3.75rem',
+      },
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to calculate responsive font sizes for pinyin text
+  const getPinyinFontSizes = () => {
+    const sizeMap = {
+      small: {
+        xs: '0.75rem',
+        sm: '0.875rem',
+        md: '1rem',
+        lg: '1.125rem',
+        xl: '1.25rem',
+      },
+      medium: {
+        xs: '0.875rem',
+        sm: '1rem',
+        md: '1.25rem',
+        lg: '1.375rem',
+        xl: '1.5rem',
+      },
+      large: {
+        xs: '1rem',
+        sm: '1.25rem',
+        md: '1.5rem',
+        lg: '1.75rem',
+        xl: '2rem',
+      },
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to calculate responsive font sizes for definition text
+  const getDefinitionFontSizes = () => {
+    const sizeMap = {
+      small: {
+        xs: '0.875rem',
+        sm: '1rem',
+        md: '1.125rem',
+        lg: '1.25rem',
+        xl: '1.375rem',
+      },
+      medium: {
+        xs: '1rem',
+        sm: '1.125rem',
+        md: '1.25rem',
+        lg: '1.375rem',
+        xl: '1.5rem',
+      },
+      large: {
+        xs: '1.125rem',
+        sm: '1.25rem',
+        md: '1.375rem',
+        lg: '1.5rem',
+        xl: '1.625rem',
+      },
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to get typography variant
+  const getTypographyVariant = () => {
+    if (size === 'small') return 'h6';
+    if (size === 'large') return 'h3';
+    return 'h4';
+  };
+
   return (
     <Box sx={{
       display: 'flex',
@@ -320,11 +411,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
           <ChineseText
             text={flashcard.front}
             showToneColors={true}
-            variant={(() => {
-              if (size === 'small') return 'h6';
-              if (size === 'large') return 'h4';
-              return 'h5';
-            })()}
+            variant={getTypographyVariant()}
+            sx={{
+              // Responsive font sizing for larger screens
+              fontSize: getChineseFontSizes(),
+            }}
           />
           
           {/* Question prompt for front */}
@@ -351,7 +442,9 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
                   fontWeight: 500,
                   letterSpacing: '0.5em',
                   mb: 0.5,
-                  lineHeight: 1.2
+                  lineHeight: 1.2,
+                  // Responsive font sizing for pinyin
+                  fontSize: getPinyinFontSizes(),
                 }}
               >
                 {(flashcard.back.pinyin || generatedPinyin || '').split(' ').join('  ')}
@@ -366,13 +459,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
             <ChineseText
               text={flashcard.front}
               showToneColors={true}
-              variant={(() => {
-                if (size === 'small') return 'h6';
-                if (size === 'large') return 'h4';
-                return 'h5';
-              })()}
+              variant={getTypographyVariant()}
               sx={{
                 letterSpacing: '0.2em',
+                // Responsive font sizing for larger screens
+                fontSize: getChineseFontSizes(),
               }}
             />
             
@@ -392,7 +483,13 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
             <Typography 
               variant={size === 'small' ? 'body2' : 'body1'}
               color="text.primary"
-              sx={{ mt: 2, textAlign: 'center', fontWeight: 500 }}
+              sx={{ 
+                mt: 2, 
+                textAlign: 'center', 
+                fontWeight: 500,
+                // Responsive font sizing for definition
+                fontSize: getDefinitionFontSizes(),
+              }}
             >
               {flashcard.back.definition}
             </Typography>
