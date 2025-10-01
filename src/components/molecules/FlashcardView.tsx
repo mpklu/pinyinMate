@@ -16,14 +16,12 @@ import {
   Fade,
 } from '@mui/material';
 import { 
-  Flip as FlipIcon,
-
-  Check as CorrectIcon,
-  Clear as IncorrectIcon,
-  Help as HintIcon,
+  Refresh as AgainIcon,
+  ThumbUp as EasyIcon,
+  RemoveRedEye as ShowIcon,
 } from '@mui/icons-material';
 
-import { ChineseText, PinyinText, AudioButton, DifficultyRating } from '../atoms';
+import { ChineseText, AudioButton, DifficultyRating } from '../atoms';
 import type { Flashcard } from '../../types/flashcard';
 import { pinyinService } from '../../services/pinyinService';
 
@@ -35,10 +33,8 @@ interface FlashcardViewProps {
   initialSide?: 'front' | 'back';
   /** Whether to show study controls (rating buttons) */
   showStudyControls?: boolean;
-  /** Whether to show audio button */
-  showAudio?: boolean;
-  /** Whether to show flip button */
-  showFlipButton?: boolean;
+
+
   /** Whether to show difficulty rating */
   showDifficulty?: boolean;
   /** Card size */
@@ -84,12 +80,17 @@ const StyledFlipCard = styled(Card, {
   height: '100%',
   position: 'relative',
   transformStyle: 'preserve-3d',
-  transition: `transform ${animationDuration}ms ease-in-out`,
+  transition: `transform ${animationDuration}ms ease-in-out, box-shadow 0.2s ease-in-out`,
   transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
   cursor: 'pointer',
   
   '&:hover': {
     boxShadow: theme.shadows[8],
+    transform: isFlipped ? 'rotateY(180deg) scale(1.02)' : 'rotateY(0deg) scale(1.02)',
+  },
+  
+  '&:active': {
+    transform: isFlipped ? 'rotateY(180deg) scale(0.98)' : 'rotateY(0deg) scale(0.98)',
   },
 }));
 
@@ -113,17 +114,7 @@ const StyledCardSide = styled(CardContent, {
   }),
 }));
 
-const StyledControlsContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  bottom: theme.spacing(1),
-  right: theme.spacing(1),
-  display: 'flex',
-  gap: theme.spacing(0.5),
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(0.5),
-  backdropFilter: 'blur(4px)',
-}));
+
 
 const StyledStudyControls = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -155,8 +146,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
   flashcard,
   initialSide = 'front',
   showStudyControls = true,
-  showAudio = true,
-  showFlipButton = true,
+
   showDifficulty = false,
   size = 'medium',
   animationDuration = 600,
@@ -289,39 +279,89 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 
         {/* Back Side */}
         <StyledCardSide side="back">
-          {/* Pinyin */}
-          {(flashcard.back.pinyin || generatedPinyin) && (
-            <PinyinText
-              pinyin={flashcard.back.pinyin || generatedPinyin || ''}
-              showToneMarks={true}
-              initiallyVisible={true}
-              showToggle={false}
-              size={size === 'small' ? 'medium' : 'large'}
-              color="primary"
-            />
+          {/* Debug info - remove this later */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ position: 'absolute', top: 0, left: 0, fontSize: '10px', color: 'red' }}>
+              Back: {JSON.stringify({
+                hasPinyin: !!(flashcard.back.pinyin || generatedPinyin),
+                hasDefinition: !!flashcard.back.definition,
+                pinyinValue: flashcard.back.pinyin || generatedPinyin,
+                definitionValue: flashcard.back.definition
+              })}
+            </Box>
           )}
           
+          {/* Aligned Pinyin and Chinese Characters */}
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            {/* Pinyin row */}
+            {(flashcard.back.pinyin || generatedPinyin) ? (
+              <Typography 
+                variant={size === 'small' ? 'body2' : 'body1'}
+                color="primary.main"
+                sx={{ 
+                  fontFamily: 'monospace',
+                  fontWeight: 500,
+                  letterSpacing: '0.5em',
+                  mb: 0.5,
+                  lineHeight: 1.2
+                }}
+              >
+                {(flashcard.back.pinyin || generatedPinyin || '').split(' ').join('  ')}
+              </Typography>
+            ) : (
+              <Typography variant="body2" color="warning.main" sx={{ mb: 0.5 }}>
+                [Generating pinyin...]
+              </Typography>
+            )}
+            
+            {/* Chinese characters row */}
+            <Typography
+              variant={(() => {
+                if (size === 'small') return 'h6';
+                if (size === 'large') return 'h4';
+                return 'h5';
+              })()}
+              sx={{
+                fontFamily: '"Noto Sans SC", "Microsoft YaHei", sans-serif',
+                fontWeight: 600,
+                letterSpacing: '0.2em',
+                color: 'text.primary'
+              }}
+            >
+              {flashcard.front}
+            </Typography>
+            
+            {/* Audio button */}
+            <Box sx={{ mt: 1 }} data-no-flip>
+              <AudioButton
+                text={flashcard.front}
+                audioUrl={flashcard.back.audioUrl}
+                size="medium"
+                onPlay={() => handleAudioPlay(flashcard.front)}
+              />
+            </Box>
+          </Box>
+          
           {/* Definition */}
-          {flashcard.back.definition && (
+          {flashcard.back.definition ? (
             <Typography 
               variant={size === 'small' ? 'body2' : 'body1'}
               color="text.primary"
-              sx={{ mt: 1, mb: 1 }}
+              sx={{ mt: 2, textAlign: 'center', fontWeight: 500 }}
             >
               {flashcard.back.definition}
             </Typography>
-          )}
-          
-          {/* Example */}
-          {flashcard.back.example && (
+          ) : (
             <Typography 
-              variant="caption"
+              variant="body2" 
               color="text.secondary"
-              sx={{ fontStyle: 'italic', textAlign: 'center' }}
+              sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}
             >
-              Example: {flashcard.back.example}
+              [No definition available]
             </Typography>
           )}
+          
+
           
           {/* Difficulty Rating */}
           {showDifficulty && flashcard.srsData && (
@@ -338,61 +378,39 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         </StyledCardSide>
       </StyledFlipCard>
 
-      {/* Card Controls */}
-      <StyledControlsContainer data-no-flip>
-        {showFlipButton && (
-          <Tooltip title="Flip card" arrow>
-            <IconButton
-              size="small"
-              onClick={handleFlip}
-              disabled={isFlipping}
-            >
-              <FlipIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        
-        {showAudio && (flashcard.back.audioUrl || flashcard.front) && (
-          <AudioButton
-            text={flashcard.front}
-            audioUrl={flashcard.back.audioUrl}
-            size="small"
-            onPlay={() => handleAudioPlay(flashcard.front)}
-          />
-        )}
-      </StyledControlsContainer>
+
 
       {/* Study Controls */}
       {showStudyControls && isShowingBack && (
         <Fade in={isShowingBack} timeout={300}>
           <StyledStudyControls data-no-flip>
-            <Tooltip title="Again (Hard)" arrow>
+            <Tooltip title="Again - Show this card soon" arrow>
               <IconButton
                 color="error"
                 size="small"
                 onClick={() => handleStudyRating(1)}
               >
-                <IncorrectIcon />
+                <AgainIcon />
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="Good (Normal)" arrow>
+            <Tooltip title="Good - Normal interval" arrow>
               <IconButton
-                color="info"
+                color="primary"
                 size="small"
                 onClick={() => handleStudyRating(3)}
               >
-                <HintIcon />
+                <ShowIcon />
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="Easy (Perfect)" arrow>
+            <Tooltip title="Easy - Longer interval" arrow>
               <IconButton
                 color="success"
                 size="small"
                 onClick={() => handleStudyRating(5)}
               >
-                <CorrectIcon />
+                <EasyIcon />
               </IconButton>
             </Tooltip>
           </StyledStudyControls>

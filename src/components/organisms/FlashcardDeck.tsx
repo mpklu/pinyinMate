@@ -21,7 +21,7 @@ import {
   Replay,
 } from '@mui/icons-material';
 
-import { FlashcardPreview } from '../molecules/FlashcardPreview';
+import FlashcardView from '../molecules/FlashcardView';
 import { LoadingSpinner } from '../atoms/LoadingSpinner';
 import { ErrorMessage } from '../atoms/ErrorMessage';
 
@@ -30,11 +30,16 @@ import type { Flashcard, FlashcardGenerateRequest } from '../../types/flashcard'
 
 // Styled components
 const DeckContainer = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  minHeight: 500,
+  padding: theme.spacing(2),
+  minHeight: 'calc(100vh - 160px)', // Full height minus margins
+  margin: theme.spacing(2),
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(2),
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(3),
+    margin: theme.spacing(3),
+  },
 }));
 
 const CardContainer = styled(Box)({
@@ -83,10 +88,7 @@ export interface FlashcardDeckProps {
   allowShuffle?: boolean;
   /** Custom CSS class */
   className?: string;
-  /** Callback when card is studied */
-  onCardStudied?: (cardId: string, correct: boolean) => void;
-  /** Callback when deck is completed */
-  onDeckComplete?: (stats: { total: number; correct: number; accuracy: number }) => void;
+
 }
 
 export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
@@ -98,8 +100,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   showStats = true,
   allowShuffle = true,
   className,
-  onCardStudied,
-  onDeckComplete,
+
 }) => {
   // State for async flashcard generation
   const [isGenerating, setIsGenerating] = useState(false);
@@ -201,44 +202,6 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
 
     initializeFlashcards();
   }, [initialFlashcards, sourceAnnotation, generateFlashcardsFromAnnotation, generateSimpleFlashcards, convertToStudyCards]);
-
-  // Handle card study (correct/incorrect)
-  const handleCardStudy = useCallback((correct: boolean) => {
-    const currentCard = flashcards[currentIndex];
-    if (!currentCard) return;
-
-    // Update flashcard state
-    setFlashcards(prev => prev.map((card, index) => 
-      index === currentIndex 
-        ? { ...card, studied: true, correct }
-        : card
-    ));
-
-    // Notify parent
-    onCardStudied?.(currentCard.id, correct);
-
-    // Move to next card
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= flashcards.length) {
-      // Deck completed
-      const updatedCards = flashcards.map((card, index) => 
-        index === currentIndex 
-          ? { ...card, studied: true, correct }
-          : card
-      );
-      const correctCount = updatedCards.filter(card => card.correct).length;
-      const accuracy = (correctCount / updatedCards.length) * 100;
-      
-      setStudyComplete(true);
-      onDeckComplete?.({
-        total: updatedCards.length,
-        correct: correctCount,
-        accuracy,
-      });
-    } else {
-      setCurrentIndex(nextIndex);
-    }
-  }, [flashcards, currentIndex, onCardStudied, onDeckComplete]);
 
   // Navigation handlers
   const handlePrevious = useCallback(() => {
@@ -384,34 +347,15 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
       {!studyComplete ? (
         <CardContainer>
           {currentCard && (
-            <FlashcardPreview
+            <FlashcardView
               flashcard={currentCard}
-              interactive
-              onClick={() => {}} // placeholder for flip functionality
+              showStudyControls={false}
+              size="large"
+              onAudioPlay={(text: string) => console.log('Playing audio for:', text)}
             />
           )}
           
-          {/* Study buttons */}
-          {currentCard && (
-            <Stack direction="row" spacing={2} mt={2}>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleCardStudy(false)}
-                size="large"
-              >
-                Incorrect
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => handleCardStudy(true)}
-                size="large"
-              >
-                Correct
-              </Button>
-            </Stack>
-          )}
+          {/* Card will auto-advance after flip or user can navigate manually */}
         </CardContainer>
       ) : (
         /* Study Complete */

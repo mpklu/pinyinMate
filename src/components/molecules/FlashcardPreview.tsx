@@ -12,12 +12,12 @@ import {
   styled,
 } from '@mui/material';
 import {
-  Flip,
   VolumeUp as VolumeUpIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
 } from '@mui/icons-material';
 import { Card } from '../atoms';
+import { pinyinService } from '../../services/pinyinService';
 import type { Flashcard } from '../../types';
 
 export interface FlashcardPreviewProps {
@@ -98,26 +98,13 @@ const ChineseText = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(1),
 }));
 
-const PinyinText = styled(Typography)(({ theme }) => ({
-  fontSize: '1rem',
-  color: theme.palette.primary.main,
-  fontWeight: 500,
-  fontFamily: 'monospace',
-  marginBottom: theme.spacing(0.5),
-}));
-
 const DefinitionText = styled(Typography)(({ theme }) => ({
   fontSize: '0.875rem',
   color: theme.palette.text.secondary,
   lineHeight: 1.4,
   marginTop: theme.spacing(1),
-}));
-
-const ExampleText = styled(Typography)(({ theme }) => ({
-  fontSize: '0.8125rem',
-  color: theme.palette.text.secondary,
-  fontStyle: 'italic',
-  marginTop: theme.spacing(0.5),
+  textAlign: 'center',
+  fontWeight: 500,
 }));
 
 const ActionBar = styled(Box)(({ theme }) => ({
@@ -148,17 +135,41 @@ export const FlashcardPreview: React.FC<FlashcardPreviewProps> = ({
   size = 'medium',
 }) => {
   const [showBack, setShowBack] = useState(initialShowBack);
+  const [generatedPinyin, setGeneratedPinyin] = useState<string | null>(null);
 
-  const handleFlip = useCallback((event: React.MouseEvent) => {
-    event.stopPropagation();
+  // Generate pinyin if not provided in flashcard data
+  React.useEffect(() => {
+    const generatePinyinForFlashcard = async () => {
+      if (!flashcard.back.pinyin && flashcard.front) {
+        try {
+          const pinyinResult = await pinyinService.generateToneMarks(flashcard.front);
+          if (pinyinResult && pinyinResult.trim().length > 0) {
+            setGeneratedPinyin(pinyinResult);
+          }
+        } catch (error) {
+          console.warn('Failed to generate pinyin for flashcard:', error);
+        }
+      }
+    };
+
+    generatePinyinForFlashcard();
+  }, [flashcard.front, flashcard.back.pinyin]);
+
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    // Don't flip if clicking on control buttons
+    const target = event.target as HTMLElement;
+    if (target.closest('[data-no-flip]')) {
+      return;
+    }
+    
+    // Flip the card
     setShowBack(!showBack);
-  }, [showBack]);
-
-  const handleClick = useCallback(() => {
+    
+    // Call onClick if provided
     if (interactive && onClick) {
       onClick(flashcard);
     }
-  }, [interactive, onClick, flashcard]);
+  }, [interactive, onClick, flashcard, showBack]);
 
   const handlePlayAudio = useCallback((event: React.MouseEvent) => {
     event.stopPropagation();
@@ -195,43 +206,43 @@ export const FlashcardPreview: React.FC<FlashcardPreviewProps> = ({
             {flashcard.front}
           </ChineseText>
         ) : (
-          // Back side - Pinyin, definition, example
+          // Back side - Aligned pinyin over Chinese characters
           <>
-            {flashcard.back.pinyin && (
-              <PinyinText>
-                {flashcard.back.pinyin}
-              </PinyinText>
-            )}
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              {/* Pinyin row */}
+              {(flashcard.back.pinyin || generatedPinyin) && (
+                <Typography 
+                  variant="body1"
+                  color="primary.main"
+                  sx={{ 
+                    fontFamily: 'monospace',
+                    fontWeight: 500,
+                    letterSpacing: '0.5em',
+                    mb: 0.5,
+                    lineHeight: 1.2
+                  }}
+                >
+                  {(flashcard.back.pinyin || generatedPinyin || '').split(' ').join('  ')}
+                </Typography>
+              )}
+              
+              {/* Chinese characters row */}
+              <ChineseText>
+                {flashcard.front}
+              </ChineseText>
+            </Box>
             
             {flashcard.back.definition && (
               <DefinitionText>
                 {flashcard.back.definition}
               </DefinitionText>
             )}
-            
-            {flashcard.back.example && (
-              <ExampleText>
-                Example: {flashcard.back.example}
-              </ExampleText>
-            )}
           </>
         )}
       </CardContent>
 
       <ActionBar>
-        <Box>
-          <Tooltip title="Flip card">
-            <IconButton
-              size="small"
-              onClick={handleFlip}
-              color="primary"
-            >
-              <Flip fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', gap: 0.5, marginLeft: 'auto' }} data-no-flip>
           {(onPlayAudio && (flashcard.back.audioUrl || !showBack)) && (
             <Tooltip title="Play pronunciation">
               <IconButton

@@ -1,8 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
 import { theme } from './theme/theme';
 import { SessionProvider } from './context/SessionContext';
+import { pinyinService } from './services/pinyinService';
 import { 
   HomePage, 
   AnnotationPage, 
@@ -12,6 +13,7 @@ import {
   LessonPage 
 } from './components/templates';
 import type { LibraryItem } from './components/templates';
+import type { Quiz, QuestionType } from './types/quiz';
 
 // Demo data for development
 const demoSegments = [
@@ -156,12 +158,104 @@ const AnnotationPageWrapper = () => {
 const QuizPageWrapper = () => {
   const navigate = useNavigate();
   const { lessonId } = useParams<{ lessonId?: string }>();
+  const [quiz, setQuiz] = React.useState<Quiz | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const loadLessonAndGenerateQuiz = async () => {
+      if (!lessonId) {
+        // Use demo quiz if no lesson ID
+        setQuiz(demoQuiz);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Load lesson from library service
+        const { libraryService } = await import('./services/libraryService');
+        await libraryService.initialize();
+        const lesson = await libraryService.getLessonById(lessonId);
+        
+        if (!lesson) {
+          throw new Error(`Lesson ${lessonId} not found`);
+        }
+
+        // Generate quiz questions from lesson vocabulary
+        const preparedLesson = await libraryService.prepareLessonForLearning(lessonId, {
+          includeQuizzes: true,
+          includeFlashcards: false,
+          cacheResult: true
+        });
+
+        // Convert to Quiz format expected by QuizPage
+        const generatedQuiz: Quiz = {
+          id: `quiz-${lessonId}`,
+          sourceAnnotationId: lessonId,
+          questions: preparedLesson.quizQuestions.map(q => ({
+            id: q.id,
+            type: q.type === 'fill-blank' ? 'fill-in-blank' : q.type as QuestionType,
+            prompt: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+          })),
+          type: 'auto-generated',
+          createdAt: new Date(),
+          metadata: {
+            difficulty: lesson.metadata.difficulty,
+            estimatedTime: lesson.metadata.estimatedTime,
+            tags: lesson.metadata.tags,
+            totalPoints: preparedLesson.quizQuestions.length * 10
+          }
+        };
+
+        setQuiz(generatedQuiz);
+      } catch (err) {
+        console.error('Failed to generate quiz:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load quiz');
+        // Fallback to demo quiz
+        setQuiz(demoQuiz);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLessonAndGenerateQuiz();
+  }, [lessonId]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading quiz...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error">{error}</Typography>
+        <button onClick={() => navigate(-1)}>Back</button>
+      </Box>  
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>No quiz available</Typography>
+        <button onClick={() => navigate(-1)}>Back</button>
+      </Box>
+    );
+  }
   
   return (
     <QuizPage
-      quiz={demoQuiz}
-      category={lessonId ? `Lesson ${lessonId}` : "Greetings"}
-      difficulty="beginner"
+      quiz={quiz}
+      category={lessonId ? `Lesson ${lessonId}` : "Demo Quiz"}
+      difficulty={quiz.metadata?.difficulty || "beginner"}
       onQuizComplete={(score, total) => {
         console.log(`Quiz completed: ${score}/${total}`);
       }}
@@ -175,11 +269,119 @@ const QuizPageWrapper = () => {
 const FlashcardPageWrapper = () => {
   const navigate = useNavigate();
   const { lessonId } = useParams<{ lessonId?: string }>();
+  const [segments, setSegments] = React.useState<typeof demoSegments>([]);
+  const [deckTitle, setDeckTitle] = React.useState<string>("Loading...");
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const loadLessonAndGenerateFlashcards = async () => {
+      if (!lessonId) {
+        // Use demo segments if no lesson ID
+        setSegments(demoSegments);
+        setDeckTitle("Hello World Flashcards");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Load lesson from library service
+        const { libraryService } = await import('./services/libraryService');
+        await libraryService.initialize();
+        const lesson = await libraryService.getLessonById(lessonId);
+        
+        if (!lesson) {
+          throw new Error(`Lesson ${lessonId} not found`);
+        }
+
+        // Convert lesson content to segments for flashcards with real pinyin
+        const lessonSegments = await Promise.all(
+          lesson.content.split(/[。！？]/).filter(s => s.trim()).map(async (text, index) => {
+            const trimmedText = text.trim();
+            let generatedPinyin = '';
+            
+            try {
+              generatedPinyin = await pinyinService.generateToneMarks(trimmedText);
+            } catch (error) {
+              console.warn(`Failed to generate pinyin for "${trimmedText}":`, error);
+              generatedPinyin = trimmedText; // Fallback to original text
+            }
+            
+            return {
+              id: `seg_${lesson.id}_${index}`,
+              text: trimmedText,
+              pinyin: generatedPinyin,
+              toneMarks: generatedPinyin,
+              definition: `Sentence ${index + 1} from lesson`,
+              position: { start: 0, end: trimmedText.length },
+            };
+          })
+        );
+
+        // Add vocabulary-based segments with real pinyin
+        const vocabularySegments = await Promise.all(
+          lesson.metadata.vocabulary.map(async (vocab, index) => {
+            let generatedPinyin = '';
+            
+            try {
+              generatedPinyin = await pinyinService.generateToneMarks(vocab.word);
+            } catch (error) {
+              console.warn(`Failed to generate pinyin for "${vocab.word}":`, error);
+              generatedPinyin = vocab.word; // Fallback to original text
+            }
+            
+            return {
+              id: `vocab_${lesson.id}_${index}`,
+              text: vocab.word,
+              pinyin: generatedPinyin,
+              toneMarks: generatedPinyin,
+              definition: vocab.translation,
+              position: { start: 0, end: vocab.word.length },
+            };
+          })
+        );
+
+        const allSegments = [...lessonSegments, ...vocabularySegments];
+        
+        setSegments(allSegments);
+        setDeckTitle(`${lesson.title} - Flashcards`);
+      } catch (err) {
+        console.error('Failed to generate flashcards:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load flashcards');
+        // Fallback to demo segments
+        setSegments(demoSegments);
+        setDeckTitle("Demo Flashcards");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLessonAndGenerateFlashcards();
+  }, [lessonId]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading flashcards...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error">{error}</Typography>
+        <button onClick={() => navigate(-1)}>Back</button>
+      </Box>  
+    );
+  }
   
   return (
     <FlashcardPage
-      segments={demoSegments}
-      deckTitle={lessonId ? `Lesson ${lessonId} Flashcards` : "Hello World Flashcards"}
+      segments={segments}
+      deckTitle={deckTitle}
       sessionType="mixed"
       onCardAnswer={(cardId, difficulty) => {
         console.log(`Card ${cardId} answered with difficulty: ${difficulty}`);
