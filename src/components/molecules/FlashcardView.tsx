@@ -247,10 +247,6 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
       >
         {/* Front Side */}
         <StyledCardSide side="front" isFlipped={isShowingBack}>
-          {/* TEST: This should only show on FRONT */}
-          <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'red', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000 }}>
-            FRONT SIDE
-          </div>
           {/* Tags */}
           {flashcard.tags && flashcard.tags.length > 0 && (
             <StyledTagsContainer>
@@ -289,22 +285,6 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 
         {/* Back Side */}
         <StyledCardSide side="back" isFlipped={isShowingBack}>
-          {/* TEST: This should only show on BACK */}
-          <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'green', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000 }}>
-            BACK SIDE
-          </div>
-          {/* Debug info - remove this later */}
-          {process.env.NODE_ENV === 'development' && (
-            <Box sx={{ position: 'absolute', top: 0, left: 0, fontSize: '10px', color: 'red' }}>
-              Back: {JSON.stringify({
-                hasPinyin: !!(flashcard.back.pinyin || generatedPinyin),
-                hasDefinition: !!flashcard.back.definition,
-                pinyinValue: flashcard.back.pinyin || generatedPinyin,
-                definitionValue: flashcard.back.definition
-              })}
-            </Box>
-          )}
-          
           {/* Aligned Pinyin and Chinese Characters */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>
             {/* Pinyin row */}
