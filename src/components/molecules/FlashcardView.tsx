@@ -55,21 +55,54 @@ interface FlashcardViewProps {
 
 const StyledFlashcardContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'cardSize',
-})<{ cardSize?: 'small' | 'medium' | 'large' }>(({ cardSize = 'medium' }) => {
-  const sizeMap = {
-    small: { width: 240, height: 160 },
-    medium: { width: 320, height: 200 },
-    large: { width: 400, height: 250 },
+})<{ cardSize?: 'small' | 'medium' | 'large' }>(({ theme, cardSize = 'medium' }) => {
+  // Responsive sizing with 4:3 aspect ratio
+  const getResponsiveSize = () => {
+    const viewportWidth = '80vw';
+    const viewportHeight = '60vh';
+    
+    let maxWidth = '600px';
+    let maxHeight = '450px';
+    
+    if (cardSize === 'small') {
+      maxWidth = '400px';
+      maxHeight = '300px';
+    } else if (cardSize === 'large') {
+      maxWidth = '800px';
+      maxHeight = '600px';
+    }
+    
+    return {
+      width: `min(${viewportWidth}, ${maxWidth})`,
+      height: `min(${viewportHeight}, ${maxHeight})`,
+      // Maintain 4:3 aspect ratio on larger screens
+      aspectRatio: '4/3',
+      
+      // Mobile responsive adjustments
+      [theme.breakpoints.down('md')]: {
+        width: '95vw',
+        height: 'auto',
+        aspectRatio: '3/4', // Taller on mobile for better readability
+        maxWidth: '400px',
+        maxHeight: '533px', // 3:4 ratio
+      },
+      
+      [theme.breakpoints.down('sm')]: {
+        width: '90vw',
+        maxWidth: '350px',
+        maxHeight: '467px',
+      },
+    };
   };
-  
-  const { width, height } = sizeMap[cardSize];
   
   return {
     perspective: '1000px',
-    width,
-    height,
-    margin: 'auto',
+    margin: '0 auto',
     position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...getResponsiveSize(),
   };
 });
 
@@ -107,9 +140,18 @@ const StyledCardSide = styled(CardContent, {
   justifyContent: 'center',
   alignItems: 'center',
   textAlign: 'center',
-  padding: theme.spacing(2),
+  padding: theme.spacing(3),
   boxSizing: 'border-box',
   backgroundColor: theme.palette.background.paper,
+  
+  // Responsive padding
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(2),
+  },
+  
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1.5),
+  },
   
   // Use opacity instead of backfaceVisibility for more reliable hiding
   opacity: (side === 'front' && !isFlipped) || (side === 'back' && isFlipped) ? 1 : 0,
@@ -238,7 +280,19 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
   const isShowingBack = currentSide === 'back';
 
   return (
-    <StyledFlashcardContainer cardSize={size}>
+    <Box sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '60vh',
+      width: '100%',
+      padding: (theme) => ({ 
+        xs: theme.spacing(2), 
+        sm: theme.spacing(3), 
+        md: theme.spacing(4) 
+      }),
+    }}>
+      <StyledFlashcardContainer cardSize={size}>
       <StyledFlipCard
         isFlipped={isShowingBack}
         animationDuration={animationDuration}
@@ -309,21 +363,18 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
             )}
             
             {/* Chinese characters row */}
-            <Typography
+            <ChineseText
+              text={flashcard.front}
+              showToneColors={true}
               variant={(() => {
                 if (size === 'small') return 'h6';
                 if (size === 'large') return 'h4';
                 return 'h5';
               })()}
               sx={{
-                fontFamily: '"Noto Sans SC", "Microsoft YaHei", sans-serif',
-                fontWeight: 600,
                 letterSpacing: '0.2em',
-                color: 'text.primary'
               }}
-            >
-              {flashcard.front}
-            </Typography>
+            />
             
             {/* Audio button */}
             <Box sx={{ mt: 1 }} data-no-flip>
@@ -410,7 +461,8 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
           </StyledStudyControls>
         </Fade>
       )}
-    </StyledFlashcardContainer>
+      </StyledFlashcardContainer>
+    </Box>
   );
 };
 
