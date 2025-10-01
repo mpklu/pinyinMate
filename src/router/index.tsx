@@ -91,7 +91,8 @@ export const router = createBrowserRouter([
         element: <QuizPage />,
         loader: async () => {
           // Preload quiz and related services
-          preloadServices.quiz();
+          // Quiz generation now handled by libraryService.ts
+          preloadServices.library();
           preloadServices.audio();
           return null;
         }
