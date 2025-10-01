@@ -1,8 +1,13 @@
 // Enhanced quiz types for the Library and Lesson System
 // Extends existing quiz system for lesson-based learning
 
-// Enhanced quiz question type supporting our three modes
-export type LessonQuestionType = 'multiple-choice' | 'fill-blank' | 'audio-recognition';
+// Enhanced quiz question type supporting multiple learning modes
+export type LessonQuestionType = 
+  | 'multiple-choice' 
+  | 'fill-blank' 
+  | 'audio-recognition'
+  | 'chinese-to-pinyin'     // Chinese text → Select pinyin
+  | 'pinyin-to-chinese';    // Pinyin → Select Chinese text
 
 export interface LessonQuizQuestion {
   id: string;                           // Generated unique ID

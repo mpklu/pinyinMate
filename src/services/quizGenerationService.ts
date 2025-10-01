@@ -15,27 +15,48 @@ import type {
   ValidationResult
 } from '../types';
 
-/**
- * Quiz generation configuration options
- */
-export interface QuizGenerationOptions {
-  questionTypes: QuizQuestionType[];
-  questionCount: number; // 3-20
-  difficulty: DifficultyLevel;
-  includeAudio: boolean;
-  timeLimit?: number; // seconds, 30-1800
-  shuffleOptions: boolean;
-  preventRepeat: boolean;
-  focusVocabulary?: string[]; // specific words to focus on
-}
+// Import pinyin generation functionality
+import { generatePinyin } from './pinyinService';
 
-/**
+  /**
+   * Quiz generation configuration options
+   */
+  export interface QuizGenerationOptions {
+    questionTypes: QuizQuestionType[];
+    questionCount: number; // 3-20
+    difficulty: DifficultyLevel;
+    includeAudio: boolean;
+    timeLimit?: number; // seconds, 30-1800
+    shuffleOptions: boolean;
+    preventRepeat: boolean;
+    focusVocabulary?: string[]; // specific words to focus on
+  }
+
+  /**
+   * Default mixed-type quiz configuration
+   * Includes both Chinese→Pinyin and Pinyin→Chinese questions
+   */
+  export const DEFAULT_MIXED_QUIZ_OPTIONS: Partial<QuizGenerationOptions> = {
+    questionTypes: [
+      'chinese-to-pinyin',      // Chinese text → Select pinyin
+      'pinyin-to-chinese',      // Pinyin → Select Chinese text  
+      'multiple-choice-definition', // Traditional definition questions
+      'multiple-choice-pinyin'   // Traditional pinyin questions
+    ],
+    questionCount: 10,
+    difficulty: 'intermediate' as DifficultyLevel,
+    includeAudio: false,
+    shuffleOptions: true,
+    preventRepeat: true
+  };/**
  * Supported quiz question types
  */
 export type QuizQuestionType = 
   | 'multiple-choice-definition'
   | 'multiple-choice-pinyin'
   | 'multiple-choice-audio'
+  | 'chinese-to-pinyin'     // NEW: Given Chinese text, select pinyin
+  | 'pinyin-to-chinese'     // NEW: Given pinyin, select Chinese text
   | 'fill-in-blank'
   | 'audio-recognition'
   | 'pronunciation-match';
@@ -327,6 +348,26 @@ class LessonQuizGenerationService {
     return Array.from(this.quizTemplates.values());
   }
 
+  /**
+   * Generate a mixed-type quiz with Chinese↔Pinyin questions
+   * Convenience method that uses the DEFAULT_MIXED_QUIZ_OPTIONS
+   * 
+   * @param lesson - Enhanced lesson with vocabulary
+   * @param customOptions - Optional custom options to override defaults
+   * @returns Promise<QuizGenerationResult> - Generated mixed-type quiz
+   */
+  async generateMixedTypeQuiz(
+    lesson: EnhancedLesson,
+    customOptions?: Partial<QuizGenerationOptions>
+  ): Promise<QuizGenerationResult> {
+    const options: QuizGenerationOptions = {
+      ...DEFAULT_MIXED_QUIZ_OPTIONS,
+      ...customOptions
+    } as QuizGenerationOptions;
+
+    return this.generateQuizFromLesson(lesson, options);
+  }
+
   // Private helper methods
 
   private validateLessonVocabulary(lesson: EnhancedLesson): { isValid: boolean; errors: QuizGenerationError[] } {
@@ -427,6 +468,12 @@ class LessonQuizGenerationService {
           break;
         case 'multiple-choice-audio':
           questions.push(await this.generateMultipleChoiceAudioQuestion(vocabEntry));
+          break;
+        case 'chinese-to-pinyin':
+          questions.push(await this.generateChineseToPinyinQuestion(vocabEntry));
+          break;
+        case 'pinyin-to-chinese':
+          questions.push(await this.generatePinyinToChineseQuestion(vocabEntry));
           break;
         case 'fill-in-blank':
           questions.push(await this.generateFillInBlankQuestion(vocabEntry));
@@ -552,6 +599,52 @@ class LessonQuizGenerationService {
     };
   }
 
+  private async generateChineseToPinyinQuestion(
+    vocabEntry: VocabularyEntryWithPinyin
+  ): Promise<LessonQuizQuestion> {
+    // Generate proper pinyin for the word using PinyinService
+    const actualPinyin = await this.generatePinyinForWord(vocabEntry.word);
+    
+    // Generate pinyin distractors (incorrect pinyin options)
+    const distractors = this.generatePinyinDistractors(actualPinyin, 3);
+    const options = [actualPinyin, ...distractors];
+    this.shuffleArray(options);
+
+    return {
+      id: this.generateQuestionId(vocabEntry.word, 'chinese-to-pinyin'),
+      type: 'chinese-to-pinyin',
+      question: `What is the pinyin pronunciation for "${vocabEntry.word}"?`,
+      options,
+      correctAnswer: actualPinyin,
+      explanation: `"${vocabEntry.word}" is pronounced "${actualPinyin}"`,
+      difficulty: this.calculateQuestionDifficulty(vocabEntry),
+      vocabularyWord: vocabEntry.word
+    };
+  }
+
+  private async generatePinyinToChineseQuestion(
+    vocabEntry: VocabularyEntryWithPinyin
+  ): Promise<LessonQuizQuestion> {
+    // Generate proper pinyin for the word
+    const actualPinyin = await this.generatePinyinForWord(vocabEntry.word);
+    
+    // Generate Chinese character distractors (incorrect Chinese characters)
+    const distractors = this.generateDistractors(vocabEntry.word, 3);
+    const options = [vocabEntry.word, ...distractors];
+    this.shuffleArray(options);
+
+    return {
+      id: this.generateQuestionId(vocabEntry.word, 'pinyin-to-chinese'),
+      type: 'pinyin-to-chinese',
+      question: `Which Chinese characters match the pinyin "${actualPinyin}"?`,
+      options,
+      correctAnswer: vocabEntry.word,
+      explanation: `The pinyin "${actualPinyin}" corresponds to "${vocabEntry.word}"`,
+      difficulty: this.calculateQuestionDifficulty(vocabEntry),
+      vocabularyWord: vocabEntry.word
+    };
+  }
+
   private createQuiz(
     lesson: EnhancedLesson,
     questions: LessonQuizQuestion[],
@@ -589,6 +682,8 @@ class LessonQuizGenerationService {
       'multiple-choice-definition': 0,
       'multiple-choice-pinyin': 0,
       'multiple-choice-audio': 0,
+      'chinese-to-pinyin': 0,
+      'pinyin-to-chinese': 0,
       'fill-in-blank': 0,
       'audio-recognition': 0,
       'pronunciation-match': 0
@@ -700,6 +795,22 @@ class LessonQuizGenerationService {
         template: 'Match the pronunciation to "{{word}}":',
         supportAudio: true,
         difficulty: 'intermediate'
+      },
+      {
+        id: 'chinese-to-pinyin-basic',
+        name: 'Chinese to Pinyin',
+        questionType: 'chinese-to-pinyin',
+        template: 'What is the pinyin pronunciation for "{{word}}"?',
+        supportAudio: false,
+        difficulty: 'beginner'
+      },
+      {
+        id: 'pinyin-to-chinese-basic',
+        name: 'Pinyin to Chinese',
+        questionType: 'pinyin-to-chinese',
+        template: 'Which Chinese characters match the pinyin "{{pinyin}}"?',
+        supportAudio: false,
+        difficulty: 'beginner'
       }
     ];
 
@@ -721,6 +832,30 @@ class LessonQuizGenerationService {
       'wǒ', 'nǐ', 'tā', 'de', 'shì', 'yǒu', 'zài', 'le', 'yī', 'èr',
       'sān', 'sì', 'wǔ', 'liù', 'qī', 'bā', 'jiǔ', 'shí', 'lái', 'qù'
     ]);
+  }
+
+  /**
+   * Generate proper pinyin for a Chinese word using the PinyinService
+   */
+  private async generatePinyinForWord(chineseWord: string): Promise<string> {
+    try {
+      const pinyinResponse = await generatePinyin({
+        text: chineseWord,
+        format: 'tone-marks' // Use tone marks (ā, é, ǐ, ò, ǔ)
+      });
+      
+      if (pinyinResponse.success && pinyinResponse.data) {
+        return pinyinResponse.data.pinyin;
+      } else {
+        // Fallback: return the original word if pinyin generation fails
+        console.warn(`Failed to generate pinyin for "${chineseWord}":`, pinyinResponse.error);
+        return chineseWord;
+      }
+    } catch (error) {
+      console.error(`Error generating pinyin for "${chineseWord}":`, error);
+      // Fallback: return the original word
+      return chineseWord;
+    }
   }
 
   private generateDistractors(correctAnswer: string, count: number): string[] {
@@ -789,6 +924,8 @@ class LessonQuizGenerationService {
         'multiple-choice-definition': 0,
         'multiple-choice-pinyin': 0,
         'multiple-choice-audio': 0,
+        'chinese-to-pinyin': 0,
+        'pinyin-to-chinese': 0,
         'fill-in-blank': 0,
         'audio-recognition': 0,
         'pronunciation-match': 0

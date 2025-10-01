@@ -275,13 +275,43 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     
     try {
       setGeneratingStudyMaterials(true);
-      const generatedQuestions = await quizGenerationService.generateQuizFromLesson(lesson.id, options);
-      setQuizQuestions(generatedQuestions);
       
-      setNotification({
-        message: `Generated ${generatedQuestions.length} quiz questions`,
-        severity: 'success'
+      // Convert StudyToolsPanel options to enhanced quiz service format
+      const questionTypes: string[] = [];
+      
+      // Always include our new Chinese↔Pinyin question types
+      questionTypes.push('chinese-to-pinyin', 'pinyin-to-chinese');
+      
+      // Add traditional types based on UI options
+      if (options.includeMultipleChoice) {
+        questionTypes.push('multiple-choice-definition', 'multiple-choice-pinyin');
+      }
+      if (options.includeFillInBlank) {
+        questionTypes.push('fill-in-blank');
+      }
+      if (options.includeListening) {
+        questionTypes.push('multiple-choice-audio');
+      }
+      
+      // Use the enhanced quiz generation service
+      const result = await quizGenerationService.generateMixedTypeQuiz(lesson, {
+        questionTypes: questionTypes as import('../../services/quizGenerationService').QuizQuestionType[],
+        questionCount: (options.maxQuestions as number) || 10,
+        difficulty: 'intermediate',
+        includeAudio: false,
+        shuffleOptions: true,
+        preventRepeat: true
       });
+      
+      if (result.success && result.quiz.questions) {
+        setQuizQuestions(result.quiz.questions);
+        setNotification({
+          message: `Generated ${result.quiz.questions.length} quiz questions including Chinese↔Pinyin!`,
+          severity: 'success'
+        });
+      } else {
+        throw new Error(result.errors?.[0]?.message || 'Quiz generation failed');
+      }
     } catch (err) {
       console.error('Quiz generation failed:', err);
       setNotification({

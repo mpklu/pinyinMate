@@ -119,24 +119,84 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
         setIsGenerating(true);
         setGenerationError(null);
 
-        // Dynamic import for code splitting
-        const { generateQuiz } = await import('../../services/quizService');
+        // Dynamic import for enhanced quiz generation service
+        console.log('🚀 USING ENHANCED QUIZ GENERATION SERVICE WITH CHINESE↔PINYIN QUESTIONS!');
+        const { quizGenerationService } = await import('../../services/quizGenerationService');
 
-        const request: QuizGenerateRequest = {
-          sourceAnnotationId: sourceAnnotation.id,
-          questionTypes: ['multiple-choice', 'fill-in-blank'],
+        // Convert annotation to enhanced lesson format
+        const enhancedLesson = {
+          id: sourceAnnotation.id,
+          title: `Quiz from ${sourceAnnotation.id}`,
+          description: 'Generated from text annotation',
+          content: sourceAnnotation.originalText,
+          metadata: {
+            difficulty: sourceAnnotation.metadata.difficulty || 'intermediate',
+            tags: ['quiz', 'generated'],
+            characterCount: sourceAnnotation.originalText.length,
+            source: 'annotation',
+            book: null,
+            vocabulary: [],
+            grammarPoints: [],
+            culturalNotes: [],
+            estimatedTime: 10,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          vocabulary: sourceAnnotation.segments.map(segment => ({
+            word: segment.text,
+            translation: segment.pinyin, // Use pinyin as translation for now
+            pinyin: segment.toneMarks || segment.pinyin,
+            frequency: 1,
+            studyCount: 0,
+            masteryLevel: 0
+          }))
+        } as unknown as import('../../types/lesson').EnhancedLesson;
+
+        // Generate quiz with our enhanced Chinese↔Pinyin questions
+        const result = await quizGenerationService.generateMixedTypeQuiz(enhancedLesson, {
+          questionTypes: ['chinese-to-pinyin', 'pinyin-to-chinese', 'multiple-choice-definition'] as import('../../services/quizGenerationService').QuizQuestionType[],
           questionCount: 10,
-          difficulty: 'intermediate',  
+          difficulty: 'intermediate',
+          includeAudio: false,
+          shuffleOptions: true,
+          preventRepeat: true,
           ...generationOptions,
-        };
+        });
 
-        const response = await generateQuiz(request, sourceAnnotation);
-
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to generate quiz');
+        if (!result.success) {
+          throw new Error(result.errors?.[0]?.message || 'Quiz generation failed');
         }
 
-        setQuiz(response.data!.quiz);
+        // Convert enhanced quiz result to standard format
+        const response = {
+          success: true as const,
+          data: {
+            quiz: {
+              id: result.quiz.id,
+              sourceAnnotationId: sourceAnnotation.id,
+              questions: result.quiz.questions.map(q => ({
+                id: q.id,
+                type: (q.type === 'chinese-to-pinyin' || q.type === 'pinyin-to-chinese' ? 'multiple-choice' : q.type) as import('../../types/quiz').QuestionType,
+                prompt: q.question,
+                options: q.options || [],
+                correctAnswer: q.correctAnswer,
+                explanation: q.explanation,
+                difficulty: q.difficulty || 3,
+                points: 10,
+                sourceSegmentId: q.vocabularyWord
+              })),
+              type: 'auto-generated' as const,
+              createdAt: new Date(),
+              metadata: {
+                estimatedTime: result.quiz.questions.length * 30,
+                totalPoints: result.quiz.questions.length * 10
+              }
+            },
+            generationTime: 100
+          }
+        };
+
+        setQuiz(response.data.quiz);
 
       } catch (error) {
         console.error('Quiz generation failed:', error);

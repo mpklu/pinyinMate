@@ -156,6 +156,8 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   const renderQuestionContent = () => {
     switch (question.type) {
       case 'multiple-choice':
+      case 'chinese-to-pinyin':
+      case 'pinyin-to-chinese':
         return (
           <FormControl component="fieldset" fullWidth>
             <RadioGroup
@@ -170,7 +172,10 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                     label={option}
                     sx={{
                       '& .MuiFormControlLabel-label': {
-                        fontSize: '0.875rem',
+                        fontSize: question.type === 'pinyin-to-chinese' ? '1.125rem' : '0.875rem',
+                        fontFamily: question.type === 'pinyin-to-chinese' 
+                          ? '"Noto Sans SC", "Microsoft YaHei", sans-serif' 
+                          : 'inherit',
                       },
                     }}
                   />
@@ -237,9 +242,6 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         );
     }
   };
-
-  // Debug logging to see what question data is being passed
-  console.log('QuizQuestion received question:', question);
 
   // Safety check for malformed question data
   if (!question?.id || !question?.question) {
