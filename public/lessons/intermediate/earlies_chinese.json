@@ -1,0 +1,73 @@
+{
+  "id": "earlies_chinese",
+  "title": "第一课 中国最早的人类", 
+  "description": "Chinese People Origin",
+"content": "中国位于欧亚大陆的东方，地势西高东低，北、西、西南三面被高原、山脉环绕，东面是海洋，形成一个相对独立的环坑。\n考古证明，早在170万年以前，中国大地上已有了原始人类。\n5年，科学家在云南省元谋县发现了两颗170万年前的人牙化和这些人制造、使用的石器，还有烧过的木炭屑和兽骨等，因，这些原始人被称为“元谋人”。\n1963年，科学家在陕西省蓝田县发现了80万年前的猿人头骨比石，这些原始人类被称为“蓝田人”。\n从1927年起，考古学家在北京市周口店地区陆续发现了六个50万年前的古人类头骨化石、很多人牙和猿人骨骼。这些原始人类被称为“北京人”。他们生活的山洞里有很厚的堆积物，其中有“北京人”用火的灰烬以及大量的石器和骨角器。\n1933年，科学家们又在北京周口店龙骨山顶的山洞里，发现了18,  000年前的三个完整的人类头骨化石，科学家称他们为“山顶洞人”。“山顶洞人”不但制造石器、骨器，而且制造骨制的装饰品，这说明“山顶洞人”已经有了爱美的观念。“山顶洞人”不但会用火，还会人工取火，会用兽皮做衣服。“山顶洞人”后期是这样生活的：一个家族的几十个人一起居住，一起劳动，一起吃饭。这种生活集体叫做氏族公社。\n大约6,  000多年前，在黄河中下游地区，氏族公社繁荣起来。他们的活动以农业为主，种田、饲养家畜、盖房、烧制陶器和纺织。\n这个时期是母系氏族社会，有同一个始祖母，如半坡氏族（在今陕西省）。\n大约5,  000多年前，黄河流域形成了父系氏族，人们开始过着有夫妻的家庭生活。之后几个氏族组成一个部落，几个部落组成部落联盟。相传4,  600年前，黄河边上强大的黄帝部落和炎帝部落联合起来打败了蚩尤部落之后，炎、黄两大部落合并在一起，形成了华夏族。这什么说中华民族是“炎黄子孙”的原因。\n但是，中国古代的文明不仅仅发源于黄河流域，在长江流域、华南和西南地区、北方草原地区，都发现了氏族社会人类居住的遗址。各地的氏族部落逐渐发展，建立联系，共同创造了中华民族远古的文化。",
+  "metadata": {
+    "difficulty": "intermediate",
+    "tags": ["history", "culture", "origins"],
+    "characterCount": 30,
+    "source": "新双双",
+    "book": "中国历史常识",
+    "vocabulary": [
+      {
+        "word": "氏族",
+        "definition": "clan"
+      },
+      {
+        "word": "考古学家",
+        "definition": "archaeologist"
+      },
+      {
+        "word": "炎黄子孙",
+        "definition": "descendants of Yan and Huang"
+      },
+      {
+        "word": "长江流域",
+        "definition": "Yangtze River Basin"
+      },
+      {
+        "word": "文明",
+        "definition": "civilization"
+      },
+      {
+        "word": "部落",
+        "definition": "tribe"
+      },
+      {
+        "word": "黄帝",
+        "definition": "Huangdi"
+      },
+      {
+        "word": "炎帝",
+        "definition": "Yandi"
+      },
+      {
+        "word": "蚩尤",
+        "definition": "Chiyou"
+      },
+      {
+        "word": "化石",
+        "definition": "fossil"
+      },
+      {
+        "word": "原始人",
+        "definition": "primitive man"
+      },
+      {
+        "word": "夫妻",
+        "definition": "couple"
+      }
+    ],
+    "grammarPoints": [
+    
+    ],
+    "culturalNotes": [
+      "In Chinese culture, the concept of family and clan is very important, and this is reflected in the language.",
+      "The idea of '炎黄子孙' (descendants of Yan and Huang) emphasizes the shared heritage of the Chinese people."
+    ],
+    "estimatedTime": 30,
+    "createdAt": "2025-09-29T12:00:00Z",
+    "updatedAt": "2025-09-29T12:00:00Z"
+  }
+}

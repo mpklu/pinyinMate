@@ -18,7 +18,6 @@ import type { EnhancedLesson } from '../../types/lesson';
 export interface LibraryPageProps {
   lessons?: EnhancedLesson[];
   onLessonStart?: (lessonId: string) => void;
-  onLessonPreview?: (lessonId: string) => void;
   onNavigateBack?: () => void;
   onNavigateHome?: () => void;
   onOpenSettings?: () => void;
@@ -27,7 +26,6 @@ export interface LibraryPageProps {
 export const LibraryPage: React.FC<LibraryPageProps> = ({
   lessons = [],
   onLessonStart,
-  onLessonPreview,
   onNavigateBack,
   onNavigateHome,
   onOpenSettings,
@@ -56,7 +54,7 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
                 showActions={true}
                 enablePreview={true}
                 onStartLesson={() => onLessonStart?.(lesson.id)}
-                onPreviewLesson={() => onLessonPreview?.(lesson.id)}
+                // No onPreviewLesson callback - let it use the internal dialog
               />
             </Grid>
           ))}

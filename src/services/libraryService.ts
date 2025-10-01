@@ -32,7 +32,7 @@ import type { LessonQuizQuestion } from '../types/enhancedQuiz';
 
 // Configuration imports
 import remoteSourcesConfig from '../config/remote-sources.json';
-import localManifest from '../config/library-manifest.json';
+import { manifestBuilder } from './manifestBuilder';
 
 /**
  * Production implementation of LibraryService
@@ -182,14 +182,14 @@ export class LibraryServiceImpl implements LibraryService {
         lesson.title.toLowerCase().includes(query.toLowerCase()) ||
         lesson.description.toLowerCase().includes(query.toLowerCase()) ||
         lesson.content.includes(query) ||
-        lesson.vocabulary?.some(v => v.word.includes(query) || v.translation.toLowerCase().includes(query.toLowerCase()))
+        lesson.metadata.vocabulary?.some(v => v.word.includes(query) || v.translation?.toLowerCase().includes(query.toLowerCase()))
       );
     }
 
     // Apply filters
     if (filters) {
       if (filters.categories?.length) {
-        results = results.filter(lesson => filters.categories!.includes(lesson.metadata.category));
+        results = results.filter(lesson => filters.categories!.includes(lesson.metadata.difficulty));
       }
       
       if (filters.difficulties?.length) {
@@ -204,7 +204,7 @@ export class LibraryServiceImpl implements LibraryService {
       
       if (filters.hasVocabulary !== undefined) {
         results = results.filter(lesson => 
-          filters.hasVocabulary ? (lesson.vocabulary?.length || 0) > 0 : !lesson.vocabulary?.length
+          filters.hasVocabulary ? (lesson.metadata.vocabulary?.length || 0) > 0 : !lesson.metadata.vocabulary?.length
         );
       }
       
@@ -355,25 +355,26 @@ export class LibraryServiceImpl implements LibraryService {
 
   private async loadLocalLibrary(): Promise<void> {
     try {
-      // Convert the imported manifest to a proper LessonLibrary
+      // Use runtime manifest builder to get lessons from public/lessons/
+      const runtimeManifest = await manifestBuilder.buildRuntimeManifest();
+      console.log(`LibraryService: Loaded ${runtimeManifest.lessons.length} lessons from manifest builder`);
+      runtimeManifest.lessons.forEach(lesson => {
+        console.log(`  - ${lesson.id}: ${lesson.title}`);
+      });
+      
+      // Convert the runtime manifest to a proper LessonLibrary
       const library: LessonLibrary = {
         id: 'local-custom',
-        name: localManifest.name,
-        description: localManifest.description,
+        name: runtimeManifest.name,
+        description: runtimeManifest.description,
         type: 'local',
-        lessons: localManifest.lessons.map(lesson => ({
-          ...lesson,
-          metadata: {
-            ...lesson.metadata,
-            difficulty: lesson.metadata.difficulty as 'beginner' | 'intermediate' | 'advanced',
-            createdAt: new Date(lesson.metadata.createdAt),
-            updatedAt: new Date(lesson.metadata.updatedAt)
-          }
-        })),
+        lessons: runtimeManifest.lessons,
         metadata: {
-          ...localManifest,
-          lastUpdated: new Date(localManifest.lastUpdated),
-          supportedFeatures: localManifest.supportedFeatures as ("flashcards" | "quizzes" | "audio" | "segmentation" | "pinyin" | "vocabulary")[]
+          version: runtimeManifest.version,
+          totalLessons: runtimeManifest.totalLessons,
+          categories: runtimeManifest.categories,
+          lastUpdated: new Date(runtimeManifest.lastUpdated),
+          supportedFeatures: runtimeManifest.supportedFeatures as ("flashcards" | "quizzes" | "audio" | "segmentation" | "pinyin" | "vocabulary")[]
         }
       };
 
@@ -447,8 +448,8 @@ export class LibraryServiceImpl implements LibraryService {
   private async generateFlashcards(lesson: Lesson): Promise<LessonFlashcard[]> {
     const flashcards: LessonFlashcard[] = [];
     
-    if (lesson.vocabulary) {
-      lesson.vocabulary.forEach((vocab, index) => {
+    if (lesson.metadata.vocabulary) {
+      lesson.metadata.vocabulary.forEach((vocab, index) => {
         flashcards.push({
           id: `${lesson.id}-card-${index}`,
           lessonId: lesson.id,
@@ -475,8 +476,8 @@ export class LibraryServiceImpl implements LibraryService {
   private async generateQuizQuestions(lesson: Lesson): Promise<LessonQuizQuestion[]> {
     const questions: LessonQuizQuestion[] = [];
     
-    if (lesson.vocabulary) {
-      lesson.vocabulary.forEach((vocab, index) => {
+    if (lesson.metadata.vocabulary) {
+      lesson.metadata.vocabulary.forEach((vocab, index) => {
         questions.push({
           id: `${lesson.id}-quiz-${index}`,
           lessonId: lesson.id,

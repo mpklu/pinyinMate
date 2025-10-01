@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
-  Container,
   AppBar,
   Toolbar,
   Typography,
@@ -10,7 +9,8 @@ import {
   useMediaQuery,
   Alert,
   Snackbar,
-  Fab
+  Fab,
+  Stack
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -29,11 +29,73 @@ import type {
 
 // Import services
 import { synthesizeAudio } from '../../services/audioService';
+import { pinyinService } from '../../services/pinyinService';
 
 interface NotificationState {
   message: string;
   severity: 'success' | 'error' | 'warning' | 'info';
 }
+
+// PinyinDisplay component for rendering pinyin with proper loading state
+const PinyinDisplay: React.FC<{ sentence: string }> = ({ sentence }) => {
+  const [pinyin, setPinyin] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const generatePinyin = async () => {
+      try {
+        setLoading(true);
+        const pinyinResponse = await pinyinService.generate({
+          text: sentence,
+          format: 'tone-marks'
+        });
+
+        if (pinyinResponse.success && pinyinResponse.data) {
+          setPinyin(pinyinResponse.data.pinyin);
+        } else {
+          console.warn('Pinyin generation failed:', pinyinResponse.error);
+          setPinyin(sentence); // Fallback to original text
+        }
+      } catch (error) {
+        console.error('Error generating pinyin:', error);
+        setPinyin(sentence); // Fallback to original text
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    generatePinyin();
+  }, [sentence]);
+
+  if (loading) {
+    return (
+      <Typography 
+        variant="body2" 
+        color="text.secondary"
+        sx={{ 
+          fontStyle: 'italic',
+          fontSize: '0.9rem',
+          opacity: 0.7
+        }}
+      >
+        Generating pinyin...
+      </Typography>
+    );
+  }
+
+  return (
+    <Typography 
+      variant="body2" 
+      color="text.secondary"
+      sx={{ 
+        fontStyle: 'italic',
+        fontSize: '0.9rem'
+      }}
+    >
+      {pinyin}
+    </Typography>
+  );
+};
 
 export const LessonPage: React.FC = () => {
   const theme = useTheme();
@@ -51,6 +113,7 @@ export const LessonPage: React.FC = () => {
     // UI state
   const [showPinyin, setShowPinyin] = useState(true);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+
 
   // Audio playback function
   const playAudio = useCallback(async (text: string, id: string) => {
@@ -221,7 +284,7 @@ export const LessonPage: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <Box sx={{ px: 3, py: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
         <Typography>Loading lesson...</Typography>
       </Box>
     );
@@ -230,14 +293,14 @@ export const LessonPage: React.FC = () => {
   // Error state
   if (error || !lesson) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box sx={{ px: 3, py: 4, width: '100%' }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error || 'Lesson not found'}
         </Alert>
         <Button onClick={handleBack} startIcon={<BackIcon />}>
           Back to Library
         </Button>
-      </Container>
+      </Box>
     );
   }
 
@@ -269,26 +332,28 @@ export const LessonPage: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
-      <Container 
-        maxWidth="lg" 
+      {/* Main Content - Full Width Desktop Layout */}
+      <Box 
         sx={{ 
           flex: 1, 
-          py: 3,
+          py: 0, // Remove vertical padding for true full width
+          width: '100%',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
-          gap: 3
+          gap: 0, // Remove gap for full width
         }}
       >
-        {/* Enhanced Lesson Content with Study Tools */}
-        <Box sx={{ flex: 1 }}>
-          {/* This would use the LessonContent organism component when fully implemented */}
+        {/* Main Lesson Content */}
+        <Box sx={{ 
+          flex: 1,
+          minWidth: 0, // Allows content to shrink properly
+        }}>
           <Box sx={{ 
-            p: 3, 
+            px: isMobile ? 2 : 4, // Only horizontal padding for readability
+            py: 3,
             bgcolor: 'background.paper', 
-            borderRadius: 2, 
-            boxShadow: 1,
-            minHeight: 400
+            minHeight: 400,
+            width: '100%'
           }}>
             <Typography variant="h5" gutterBottom>
               {lesson.title}
@@ -335,25 +400,7 @@ export const LessonPage: React.FC = () => {
                     {sentence.trim()}。
                   </Typography>
                   {showPinyin && (
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ 
-                        fontStyle: 'italic',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      {/* Future: Generate actual pinyin using pinyin-pro library */}
-                      [Pinyin: {sentence.trim().split('').map(char => {
-                        if (char === '你') return 'nǐ ';
-                        if (char === '好') return 'hǎo ';
-                        if (char === '我') return 'wǒ ';
-                        if (char === '叫') return 'jiào ';
-                        if (char === '小') return 'xiǎo ';
-                        if (char === '明') return 'míng ';
-                        return char;
-                      }).join('')}]
-                    </Typography>
+                    <PinyinDisplay sentence={sentence.trim()} />
                   )}
                   
                   {/* Audio playback button */}
@@ -434,43 +481,71 @@ export const LessonPage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Study Tools Panel */}
-        <Box sx={{ 
-          width: isMobile ? '100%' : 320,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          {/* Progress Panel */}
+        {/* Sidebar - Desktop Only */}
+        {!isMobile && (
           <Box sx={{ 
-            p: 2, 
-            bgcolor: 'background.paper', 
-            borderRadius: 2, 
-            boxShadow: 1
+            width: 320, // Slightly wider for better proportions
+            bgcolor: 'grey.50',
+            p: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2
           }}>
-            <Typography variant="h6" gutterBottom>
-              Progress
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Segments viewed: {progress?.segmentsViewed.size || 0} / {lesson.content.split(/[。！？]/).filter(s => s.trim()).length}
-            </Typography>
+            {/* Lesson Info */}
             <Box sx={{ 
-              mt: 2, 
-              height: 8, 
-              bgcolor: 'grey.200', 
-              borderRadius: 1,
-              overflow: 'hidden'
+              p: 2, 
+              bgcolor: 'background.paper', 
+              borderRadius: 2, 
+              boxShadow: 1
             }}>
-              <Box sx={{ 
-                height: '100%', 
-                bgcolor: 'primary.main',
-                width: `${((progress?.segmentsViewed.size || 0) / lesson.content.split(/[。！？]/).filter(s => s.trim()).length) * 100}%`,
-                transition: 'width 0.3s ease'
-              }} />
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
+                Lesson Info
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Difficulty: {lesson?.metadata.difficulty}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Vocabulary: {lesson?.metadata.vocabulary?.length || 0} words
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Est. Time: {lesson?.metadata.estimatedTime || 'N/A'} min
+              </Typography>
+            </Box>
+
+            {/* Quick Actions */}
+            <Box sx={{ 
+              p: 2, 
+              bgcolor: 'background.paper', 
+              borderRadius: 2, 
+              boxShadow: 1
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
+                Study Tools
+              </Typography>
+              <Stack spacing={1}>
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  startIcon={<FlashcardIcon />}
+                  onClick={() => navigate(`/flashcards/${lesson?.id}`)}
+                  fullWidth
+                >
+                  Flashcards
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  startIcon={<QuizIcon />}
+                  onClick={() => navigate(`/quiz/${lesson?.id}`)}
+                  fullWidth
+                >
+                  Quiz
+                </Button>
+              </Stack>
             </Box>
           </Box>
-        </Box>
-      </Container>
+        )}
+      </Box>
 
       {/* Floating Action Buttons for Study Tools (as per spec requirements) */}
       <Fab

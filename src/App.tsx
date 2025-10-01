@@ -220,6 +220,10 @@ const LibraryPageWrapper = () => {
         
         // Get all lessons
         const allLessons = await libraryService.getLessons();
+        console.log(`LibraryPageWrapper: Got ${allLessons.length} lessons from library service`);
+        allLessons.forEach((lesson, index) => {
+          console.log(`  ${index + 1}. ${lesson.id}: ${lesson.title} (${lesson.metadata.difficulty})`);
+        });
         
         // Convert lessons to LibraryItem format expected by LibraryPage
         const libraryItems: LibraryItem[] = allLessons.map(lesson => ({
@@ -240,6 +244,7 @@ const LibraryPageWrapper = () => {
           },
         }));
         
+        console.log(`LibraryPageWrapper: Converted to ${libraryItems.length} library items`);
         setLessons(libraryItems);
       } catch (err) {
         console.error('Failed to load lessons:', err);
@@ -311,9 +316,6 @@ const LibraryPageWrapper = () => {
           console.log('Starting lesson (loading):', lessonId);
           navigate(`/lesson/${lessonId}`);
         }}
-        onLessonPreview={(lessonId) => {
-          console.log('Previewing lesson (loading):', lessonId);
-        }}
         onNavigateBack={() => navigate(-1)}
         onNavigateHome={() => navigate('/')}
         onOpenSettings={() => console.log('Library settings opened')}
@@ -332,10 +334,6 @@ const LibraryPageWrapper = () => {
         console.log('Starting lesson:', lessonId);
         // Navigate to the enhanced lesson page as per spec requirements
         navigate(`/lesson/${lessonId}`);
-      }}
-      onLessonPreview={(lessonId) => {
-        console.log('Previewing lesson:', lessonId);
-        // Preview functionality is handled by the EnhancedLessonCard component internally
       }}
       onNavigateBack={() => navigate(-1)}
       onNavigateHome={() => navigate('/')}

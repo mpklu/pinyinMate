@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manifest Builder Test</title>
+</head>
+<body>
+    <h1>Manifest Builder Test</h1>
+    <button id="testBtn">Test Manifest Builder</button>
+    <div id="output"></div>
+
+    <script type="module">
+        // Import the manifest builder
+        import { manifestBuilder } from './src/services/manifestBuilder.js';
+        
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Testing manifest builder...</p>';
+            
+            try {
+                // Clear cache first
+                manifestBuilder.clearCache();
+                console.log('Cache cleared');
+                
+                // Build manifest
+                const manifest = await manifestBuilder.buildRuntimeManifest();
+                
+                let html = `<h2>Results:</h2>`;
+                html += `<p><strong>Total lessons:</strong> ${manifest.lessons.length}</p>`;
+                html += `<h3>Lessons found:</h3><ul>`;
+                
+                manifest.lessons.forEach((lesson, index) => {
+                    html += `<li>${index + 1}. <strong>${lesson.id}</strong>: ${lesson.title} (${lesson.metadata.difficulty})</li>`;
+                });
+                
+                html += `</ul>`;
+                html += `<h3>Categories:</h3><p>${manifest.categories.join(', ')}</p>`;
+                
+                output.innerHTML = html;
+                
+            } catch (error) {
+                output.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

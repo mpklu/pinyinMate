@@ -36,7 +36,7 @@ import {
   BookmarkBorder as BookmarkBorderIcon,
   Share as ShareIcon
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
+
 import type { Lesson, EnhancedLesson } from '../../types/lesson';
 
 // Progress information interface
@@ -113,7 +113,6 @@ export const EnhancedLessonCard: React.FC<EnhancedLessonCardProps> = ({
   onToggleBookmark,
   onShareLesson
 }) => {
-  const theme = useTheme();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -182,50 +181,100 @@ export const EnhancedLessonCard: React.FC<EnhancedLessonCardProps> = ({
           />
         </Box>
       </DialogTitle>
-      <DialogContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          {lesson.description}
-        </Typography>
-        
-        <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-          Content Preview
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            backgroundColor: theme.palette.grey[50],
-            padding: theme.spacing(2),
-            borderRadius: 1,
-            fontFamily: 'monospace',
-            fontSize: '1.1rem',
-            lineHeight: 1.6,
-            maxHeight: 300,
-            overflow: 'auto'
+      <DialogContent sx={{ p: 0 }}>
+        {/* Lesson Description */}
+        <Box sx={{ p: 3, pb: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            {lesson.description}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+            <Chip
+              icon={<BookIcon />}
+              label={`${vocabularyCount} vocabulary words`}
+              variant="outlined"
+              size="small"
+            />
+            <Chip
+              icon={<TimeIcon />}
+              label={`${lesson.metadata.estimatedTime || 'N/A'} minutes`}
+              variant="outlined"
+              size="small"
+            />
+            {isEnhanced && (
+              <Chip
+                label="Enhanced Content"
+                color="primary"
+                variant="outlined"
+                size="small"
+              />
+            )}
+          </Box>
+        </Box>
+
+        {/* Full Lesson Content - Scrollable */}
+        <Box 
+          sx={{ 
+            maxHeight: 400,
+            overflow: 'auto',
+            borderTop: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
+            bgcolor: 'grey.50'
           }}
         >
-          {lesson.content.substring(0, 500)}
-          {lesson.content.length > 500 && '...'}
-        </Typography>
-
-        <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Chip
-            icon={<BookIcon />}
-            label={`${vocabularyCount} vocabulary words`}
-            variant="outlined"
-          />
-          <Chip
-            icon={<TimeIcon />}
-            label={`${lesson.metadata.estimatedTime || 'N/A'} minutes`}
-            variant="outlined"
-          />
-          {isEnhanced && (
-            <Chip
-              label="Enhanced Content"
-              color="primary"
-              variant="outlined"
-            />
-          )}
+          <Typography
+            variant="body1"
+            sx={{
+              p: 3,
+              fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+              fontSize: '1.1rem',
+              lineHeight: 1.8,
+              whiteSpace: 'pre-wrap',
+              color: 'text.primary'
+            }}
+          >
+            {lesson.content}
+          </Typography>
         </Box>
+
+        {/* Vocabulary Section in Preview */}
+        {vocabularyCount > 0 && (
+          <Box sx={{ p: 3, pt: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', fontWeight: 600 }}>
+              Key Vocabulary
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {lesson.metadata.vocabulary.slice(0, 8).map((vocab, index) => (
+                <Box
+                  key={`preview-vocab-${vocab.word}-${index}`}
+                  sx={{
+                    p: 1,
+                    bgcolor: 'background.paper',
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    minWidth: 80
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    {vocab.word}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    {vocab.translation}
+                  </Typography>
+                </Box>
+              ))}
+              {vocabularyCount > 8 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    +{vocabularyCount - 8} more...
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClosePreview}>Close</Button>
