@@ -19,8 +19,28 @@ import { QuizQuestion } from '../molecules/QuizQuestion';
 import { LoadingSpinner } from '../atoms/LoadingSpinner';
 import { ErrorMessage } from '../atoms/ErrorMessage';
 
-import type { Quiz, QuizGenerateRequest } from '../../types/quiz';
+import type { Quiz, QuizGenerateRequest, QuizQuestion as OldQuizQuestion } from '../../types/quiz';
+import type { LessonQuizQuestion, LessonQuestionType } from '../../types/enhancedQuiz';
 import type { TextAnnotation } from '../../types/annotation';
+
+// Adapter function to convert old QuizQuestion to LessonQuizQuestion
+const adaptQuizQuestion = (oldQuestion: OldQuizQuestion, lessonId: string = 'unknown'): LessonQuizQuestion => ({
+  id: oldQuestion.id,
+  lessonId: lessonId,
+  type: 'multiple-choice' as LessonQuestionType, // Default to multiple-choice
+  question: oldQuestion.prompt,
+  correctAnswer: Array.isArray(oldQuestion.correctAnswer) 
+    ? oldQuestion.correctAnswer[0] 
+    : oldQuestion.correctAnswer,
+  options: oldQuestion.options,
+  audioPrompt: undefined,
+  metadata: {
+    sourceWord: undefined,
+    difficulty: 3, // Default difficulty
+    createdAt: new Date(),
+    tags: []
+  }
+});
 
 // Styled components
 const QuizContainerStyled = styled(Paper)(({ theme }) => ({
@@ -304,7 +324,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
         <QuestionContainer>
           {quiz && currentQuestionIndex < quiz.questions.length && (
             <QuizQuestion
-              question={quiz.questions[currentQuestionIndex]}
+              question={adaptQuizQuestion(quiz.questions[currentQuestionIndex], quiz.sourceAnnotationId)}
               questionNumber={currentQuestionIndex + 1}
               onAnswerChange={handleAnswer}
               interactive
