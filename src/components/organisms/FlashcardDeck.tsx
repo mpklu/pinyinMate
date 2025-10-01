@@ -351,7 +351,11 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
               flashcard={currentCard}
               showStudyControls={false}
               size="large"
-              onAudioPlay={(text: string) => console.log('Playing audio for:', text)}
+              onAudioPlay={(text: string) => {
+                // Audio playback is handled by AudioButton internally
+                // This callback is just for notification/analytics
+                console.log('Audio playback started for:', text);
+              }}
             />
           )}
           

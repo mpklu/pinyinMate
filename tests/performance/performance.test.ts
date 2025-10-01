@@ -9,7 +9,7 @@ import { performance } from 'perf_hooks';
 
 // Mock services for testing
 import { libraryService } from '../../src/services/libraryService';
-import { synthesizeAudio } from '../../src/services/audioService';
+import { synthesize } from '../../src/services/audioService';
 import { LessonServiceImpl } from '../../src/services/lessonService';
 import type { LessonContent, RemoteSource } from '../../src/types/library';
 import type { AudioSynthesizeRequest } from '../../src/types/library';
@@ -293,7 +293,7 @@ describe('Performance Tests', () => {
       };
 
       // Mock fast audio generation
-      vi.mocked(synthesizeAudio).mockImplementation(async () => {
+      vi.mocked(synthesize).mockImplementation(async () => {
         // Simulate processing time
         await new Promise(resolve => setTimeout(resolve, 100));
         return {
@@ -307,7 +307,7 @@ describe('Performance Tests', () => {
         };
       });
 
-      const result = await synthesizeAudio(request);
+      const result = await synthesize(request);
       
       const elapsed = performance.now() - startTime;
       
@@ -326,7 +326,7 @@ describe('Performance Tests', () => {
         }
       };
 
-      vi.mocked(synthesizeAudio).mockImplementation(async () => {
+      vi.mocked(synthesize).mockImplementation(async () => {
         // Simulate longer processing for more text
         await new Promise(resolve => setTimeout(resolve, 200));
         return {
@@ -340,7 +340,7 @@ describe('Performance Tests', () => {
         };
       });
 
-      const result = await synthesizeAudio(request);
+      const result = await synthesize(request);
       
       const elapsed = performance.now() - startTime;
       
@@ -359,7 +359,7 @@ describe('Performance Tests', () => {
         { text: '没关系', options: { speed: 1.0, pitch: 1.0 } }
       ];
 
-      vi.mocked(synthesizeAudio).mockImplementation(async () => {
+      vi.mocked(synthesize).mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, 150));
         return {
           success: true,
@@ -372,7 +372,7 @@ describe('Performance Tests', () => {
         };
       });
 
-      const promises = requests.map(request => synthesizeAudio(request));
+      const promises = requests.map(request => synthesize(request));
       const results = await Promise.all(promises);
       
       const elapsed = performance.now() - startTime;
@@ -394,7 +394,7 @@ describe('Performance Tests', () => {
       };
 
       // Mock slow audio generation with timeout
-      vi.mocked(synthesizeAudio).mockImplementation(async () => {
+      vi.mocked(synthesize).mockImplementation(async () => {
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Audio generation timeout')), 1000)
         );
@@ -423,7 +423,7 @@ describe('Performance Tests', () => {
         }
       });
 
-      const result = await synthesizeAudio(request);
+      const result = await synthesize(request);
       
       const elapsed = performance.now() - startTime;
       
@@ -441,7 +441,7 @@ describe('Performance Tests', () => {
 
       // First request - full generation
       const startTime1 = performance.now();
-      vi.mocked(synthesizeAudio).mockResolvedValueOnce({
+      vi.mocked(synthesize).mockResolvedValueOnce({
         success: true,
         data: {
           audioUrl: 'cached-audio.mp3',
@@ -451,14 +451,14 @@ describe('Performance Tests', () => {
         }
       });
 
-      const result1 = await synthesizeAudio(request);
+      const result1 = await synthesize(request);
       const elapsed1 = performance.now() - startTime1;
 
       expect(result1.success).toBe(true);
 
       // Second request - should be faster (cached)
       const startTime2 = performance.now();
-      vi.mocked(synthesizeAudio).mockResolvedValueOnce({
+      vi.mocked(synthesize).mockResolvedValueOnce({
         success: true,
         data: {
           audioUrl: 'cached-audio.mp3',
@@ -469,7 +469,7 @@ describe('Performance Tests', () => {
         }
       });
 
-      const result2 = await synthesizeAudio(request);
+      const result2 = await synthesize(request);
       const elapsed2 = performance.now() - startTime2;
 
       expect(result2.success).toBe(true);

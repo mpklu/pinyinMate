@@ -257,10 +257,6 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
     onStudyRating?.(rating);
   };
 
-  const handleAudioPlay = (text: string) => {
-    onAudioPlay?.(text);
-  };
-
   // Set up auto-flip
   React.useEffect(() => {
     if (autoFlipDelay > 0 && currentSide === 'front') {
@@ -511,7 +507,10 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
                 text={flashcard.front}
                 audioUrl={flashcard.back.audioUrl}
                 size="medium"
-                onPlay={() => handleAudioPlay(flashcard.front)}
+                onPlay={() => {
+                  // Only notify parent that audio started, don't trigger additional playback
+                  onAudioPlay?.(flashcard.front);
+                }}
               />
             </Box>
           </Box>

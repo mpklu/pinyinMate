@@ -28,7 +28,7 @@ import type {
 } from '../../types';
 
 // Import services
-import { synthesizeAudio } from '../../services/audioService';
+import { synthesize } from '../../services/audioService';
 import { pinyinService } from '../../services/pinyinService';
 
 interface NotificationState {
@@ -136,7 +136,7 @@ export const LessonPage: React.FC = () => {
         }
       };
 
-      const response = await synthesizeAudio(audioRequest);
+      const response = await synthesize(audioRequest);
       
       if (response.success) {
         // Audio should play automatically through Web Speech API
