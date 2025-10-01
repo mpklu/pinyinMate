@@ -309,12 +309,25 @@ const FlashcardPageWrapper = () => {
               generatedPinyin = trimmedText; // Fallback to original text
             }
             
+            // Try to get translation for the sentence
+            let translation = `Sentence ${index + 1} from lesson`;
+            try {
+              const { translationService } = await import('./services/translationService');
+              const translationResult = await translationService.translate({ text: trimmedText });
+              if (translationResult.success && translationResult.data) {
+                translation = translationResult.data.translatedText;
+              }
+            } catch (error) {
+              console.warn(`Failed to translate "${trimmedText}":`, error);
+              // Keep fallback translation
+            }
+
             return {
               id: `seg_${lesson.id}_${index}`,
               text: trimmedText,
               pinyin: generatedPinyin,
               toneMarks: generatedPinyin,
-              definition: `Sentence ${index + 1} from lesson`,
+              definition: translation,
               position: { start: 0, end: trimmedText.length },
             };
           })
