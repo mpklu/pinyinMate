@@ -432,40 +432,78 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         <StyledCardSide side="back" isFlipped={isShowingBack}>
           {/* Aligned Pinyin and Chinese Characters */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>
-            {/* Pinyin row */}
             {(flashcard.back.pinyin || generatedPinyin) ? (
-              <Typography 
-                variant={size === 'small' ? 'body2' : 'body1'}
-                color="primary.main"
-                sx={{ 
-                  fontFamily: 'monospace',
-                  fontWeight: 500,
-                  letterSpacing: '0.5em',
-                  mb: 0.5,
-                  lineHeight: 1.2,
-                  // Responsive font sizing for pinyin
-                  fontSize: getPinyinFontSizes(),
-                }}
-              >
-                {(flashcard.back.pinyin || generatedPinyin || '').split(' ').join('  ')}
-              </Typography>
+              <Box sx={{ display: 'inline-block' }}>
+                {/* Character-by-character alignment */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  gap: '0.5em',
+                  mb: 0.5 
+                }}>
+                  {flashcard.front.split('').map((char, index) => {
+                    const pinyinArray = (flashcard.back.pinyin || generatedPinyin || '').split(' ');
+                    const charPinyin = pinyinArray[index] || '';
+                    
+                    return (
+                      <Box 
+                        key={`${char}-${index}-${flashcard.id || 'flashcard'}`}
+                        sx={{ 
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          minWidth: '1.5em',
+                        }}
+                      >
+                        {/* Pinyin for this character */}
+                        <Typography 
+                          variant={size === 'small' ? 'body2' : 'body1'}
+                          color="primary.main"
+                          sx={{ 
+                            fontFamily: 'monospace',
+                            fontWeight: 500,
+                            fontSize: getPinyinFontSizes(),
+                            lineHeight: 1.2,
+                            mb: 0.25,
+                            textAlign: 'center',
+                            minHeight: '1.2em',
+                          }}
+                        >
+                          {charPinyin}
+                        </Typography>
+                        
+                        {/* Chinese character */}
+                        <ChineseText
+                          text={char}
+                          showToneColors={true}
+                          variant={getTypographyVariant()}
+                          sx={{
+                            fontSize: getChineseFontSizes(),
+                            lineHeight: 1,
+                            textAlign: 'center',
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
             ) : (
-              <Typography variant="body2" color="warning.main" sx={{ mb: 0.5 }}>
-                [Generating pinyin...]
-              </Typography>
+              <>
+                <Typography variant="body2" color="warning.main" sx={{ mb: 0.5 }}>
+                  [Generating pinyin...]
+                </Typography>
+                {/* Show Chinese characters even when pinyin is loading */}
+                <ChineseText
+                  text={flashcard.front}
+                  showToneColors={true}
+                  variant={getTypographyVariant()}
+                  sx={{
+                    fontSize: getChineseFontSizes(),
+                  }}
+                />
+              </>
             )}
-            
-            {/* Chinese characters row */}
-            <ChineseText
-              text={flashcard.front}
-              showToneColors={true}
-              variant={getTypographyVariant()}
-              sx={{
-                letterSpacing: '0.2em',
-                // Responsive font sizing for larger screens
-                fontSize: getChineseFontSizes(),
-              }}
-            />
             
             {/* Audio button */}
             <Box sx={{ mt: 1 }} data-no-flip>
