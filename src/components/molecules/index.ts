@@ -23,3 +23,16 @@ export type { CategoryFilterProps } from './CategoryFilter';
 export type { TextSegmentCardProps } from './TextSegmentCard';
 export type { FlashcardViewProps } from './FlashcardView';
 export type { ExportOptionsProps, ExportFormat as MoleculeExportFormat, ExportContentType } from './ExportOptions';
+
+// Enhanced Interactive Learning Components
+export { default as TextSegmentDisplay } from './TextSegmentDisplay';
+export type { TextSegmentDisplayProps } from './TextSegmentDisplay';
+
+export { default as AudioControls } from './AudioControls';
+export type { AudioControlsProps, RepeatMode } from './AudioControls';
+
+export { default as StudyToolsPanel } from './StudyToolsPanel';
+export type { StudyToolsPanelProps, FlashcardGenerationOptions, QuizGenerationOptions } from './StudyToolsPanel';
+
+export { default as EnhancedLessonCard } from './EnhancedLessonCard';
+export type { EnhancedLessonCardProps } from './EnhancedLessonCard';

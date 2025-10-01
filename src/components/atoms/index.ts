@@ -64,3 +64,16 @@ export type { TextSegmentSkeletonProps } from './TextSegmentSkeleton';
 
 export { LibraryGridSkeleton } from './LibraryGridSkeleton';
 export type { LibraryGridSkeletonProps } from './LibraryGridSkeleton';
+
+// Enhanced Interactive Learning Components
+export { default as AudioSegmentButton } from './AudioSegmentButton';
+export type { AudioSegmentButtonProps } from './AudioSegmentButton';
+
+export { default as VocabularyHighlight } from './VocabularyHighlight';
+export type { VocabularyHighlightProps } from './VocabularyHighlight';
+
+export { default as ProgressTracker } from './ProgressTracker';
+export type { ProgressTrackerProps } from './ProgressTracker';
+
+export { default as StudyToolButton } from './StudyToolButton';
+export type { StudyToolButtonProps, StudyToolType } from './StudyToolButton';

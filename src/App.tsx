@@ -8,7 +8,8 @@ import {
   AnnotationPage, 
   QuizPage, 
   FlashcardPage, 
-  LibraryPage 
+  LibraryPage,
+  LessonPage 
 } from './components/templates';
 import type { LibraryItem } from './components/templates';
 
@@ -193,6 +194,11 @@ const FlashcardPageWrapper = () => {
   );
 };
 
+const LessonPageWrapper = () => {
+  // LessonPage handles its own routing internally using useParams
+  return <LessonPage />;
+};
+
 const LibraryPageWrapper = () => {
   const navigate = useNavigate();
   const [lessons, setLessons] = React.useState<LibraryItem[]>([]);
@@ -224,7 +230,7 @@ const LibraryPageWrapper = () => {
           createdAt: lesson.metadata?.createdAt || new Date(),
           tags: lesson.metadata?.tags || [],
           difficulty: lesson.metadata?.difficulty || 'beginner' as const,
-          itemCount: lesson.vocabulary?.length || 0,
+          itemCount: lesson.metadata?.vocabulary?.length || 0,
           data: {
             id: lesson.id,
             originalText: lesson.content,
@@ -247,18 +253,67 @@ const LibraryPageWrapper = () => {
     loadLessons();
   }, []);
 
-  // Show loading state with demo data until real data loads
+  // Convert LibraryItems back to lessons for the lessons prop (must be above early returns)
+  const actualLessons = React.useMemo(() => {
+    // For now, we need to convert the lessons back from library items
+    // In the future, the library service should provide both formats
+    return lessons.map(item => {
+      if (item.data && typeof item.data === 'object' && 'originalText' in item.data) {
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          content: item.data.originalText || '',
+          metadata: {
+            difficulty: item.difficulty || 'beginner',
+            tags: item.tags || [],
+            characterCount: item.data.originalText?.length || 0,
+            source: 'Library',
+            book: null,
+            vocabulary: [],
+            grammarPoints: [],
+            culturalNotes: [],
+            estimatedTime: 30,
+            createdAt: item.createdAt,
+            updatedAt: item.createdAt
+          }
+        };
+      }
+      // Fallback for items without proper data structure
+      return {
+        id: item.id,
+        title: item.title,
+        description: item.description || '',
+        content: `Mock content for ${item.title}`,
+        metadata: {
+          difficulty: item.difficulty || 'beginner',
+          tags: item.tags || [],
+          characterCount: 50,
+          source: 'Library',
+          book: null,
+          vocabulary: [],
+          grammarPoints: [],
+          culturalNotes: [],
+          estimatedTime: 30,
+          createdAt: item.createdAt,
+          updatedAt: item.createdAt
+        }
+      };
+    });
+  }, [lessons]);
+
+  // Show loading state with empty lessons until real data loads
   if (loading) {
     return (
       <LibraryPage
-        items={demoLibraryItems}
-        onItemSelect={() => {}}
-        onItemOpen={() => {}}
+        lessons={[]} // Empty array during loading
         onLessonStart={(lessonId) => {
           console.log('Starting lesson (loading):', lessonId);
-          navigate(`/annotate?lessonId=${lessonId}`);
+          navigate(`/lesson/${lessonId}`);
         }}
-        onCreateNew={() => {}}
+        onLessonPreview={(lessonId) => {
+          console.log('Previewing lesson (loading):', lessonId);
+        }}
         onNavigateBack={() => navigate(-1)}
         onNavigateHome={() => navigate('/')}
         onOpenSettings={() => console.log('Library settings opened')}
@@ -269,32 +324,18 @@ const LibraryPageWrapper = () => {
   if (error) {
     console.warn(error);
   }
-  
+
   return (
     <LibraryPage
-      items={lessons}
-      onItemSelect={(itemId) => console.log('Item selected:', itemId)}
-      onItemOpen={(item) => {
-        console.log('Item opened:', item);
-        // Navigate to appropriate page based on item type
-        if (item.type === 'annotation') {
-          navigate('/annotate');
-        } else if (item.type === 'quiz') {
-          navigate(`/quiz/${item.id}`);
-        } else if (item.type === 'flashcard-deck') {
-          navigate(`/flashcards/${item.id}`);
-        }
-      }}
+      lessons={actualLessons}
       onLessonStart={(lessonId) => {
         console.log('Starting lesson:', lessonId);
-        // Navigate to annotation page for the lesson
-        navigate(`/annotate?lessonId=${lessonId}`);
+        // Navigate to the enhanced lesson page as per spec requirements
+        navigate(`/lesson/${lessonId}`);
       }}
-      onCreateNew={(type) => {
-        console.log('Creating new:', type);
-        if (type === 'annotation') {
-          navigate('/annotate');
-        }
+      onLessonPreview={(lessonId) => {
+        console.log('Previewing lesson:', lessonId);
+        // Preview functionality is handled by the EnhancedLessonCard component internally
       }}
       onNavigateBack={() => navigate(-1)}
       onNavigateHome={() => navigate('/')}
@@ -341,6 +382,9 @@ function App() {
 
             {/* Library Route */}
             <Route path="/library" element={<LibraryPageWrapper />} />
+
+            {/* Individual Lesson Route */}
+            <Route path="/lesson/:lessonId" element={<LessonPageWrapper />} />
 
             {/* Default redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

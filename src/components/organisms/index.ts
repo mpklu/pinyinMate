@@ -9,6 +9,7 @@ export { LessonBrowser } from './LessonBrowser';
 export { Navigation } from './Navigation';
 export { QuizContainer } from './QuizContainer';
 export { TextAnnotationPanel } from './TextAnnotationPanel';
+export { default as LessonContent } from './LessonContent';
 
 // Export all types
 export type { LessonBrowserProps } from './LessonBrowser';
@@ -17,3 +18,4 @@ export type { TextAnnotationPanelProps, AnnotationResult } from './TextAnnotatio
 export type { QuizContainerProps, QuizProgress } from './QuizContainer';
 export type { FlashcardDeckProps } from './FlashcardDeck';
 export type { ExportPanelProps, ExportFormat as OrganismExportFormat, ExportOptions as OrganismExportOptions } from './ExportPanel';
+export type { LessonContentProps } from './LessonContent';
