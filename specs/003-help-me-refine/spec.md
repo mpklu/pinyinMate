@@ -35,6 +35,17 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-09-30
+- Q: Where should the flashcard and quiz generation controls be located? → A: Floating action buttons always visible while viewing lesson content
+- Q: What specific user progress should be tracked during lesson study? → A: Only completion status (started/finished) and time spent
+- Q: What should be the smallest unit for audio playback segmentation? → A: Sentence-level segments with clickable vocabulary words within them
+- Q: What types of quiz questions should be generated from lesson content? → A: Multiple choice pronunciation questions covering vocabulary, and audio recognition if feasible
+- Q: What should be excluded from the lesson preview compared to full study mode? → A: Show only basic content display - exclude audio, progress, and study tools
+
+---
+
 ## User Scenarios & Testing
 
 ### Primary User Story
@@ -46,32 +57,32 @@ As a Chinese language student, I want to start a lesson and have access to compr
 3. **Given** I'm viewing lesson content with integrated AudioService, **When** I click on any text segment or vocabulary word, **Then** I should hear audio pronunciation using the Web Speech API integration
 4. **Given** I'm on a lesson page with vocabulary from metadata.vocabulary array, **When** I click "Generate Flashcards", **Then** the system should use existing FlashcardService to create SRS-enabled flashcards and navigate to the flashcard study interface
 5. **Given** I'm on a lesson page with validated lesson content, **When** I click "Generate Quiz", **Then** the system should use existing QuizService to create questions and navigate to the quiz interface
-6. **Given** I'm on the Library page with existing LessonCard components, **When** I click "Preview" on any lesson, **Then** I should see a Material-UI dialog/modal with lesson content preview without entering full study mode
+6. **Given** I'm on the Library page with existing LessonCard components, **When** I click "Preview" on any lesson, **Then** I should see a Material-UI dialog/modal displaying basic lesson content with pinyin annotations but without audio playback, progress tracking, or study tool generation
 7. **Given** I have lesson data conforming to the documented schema, **When** the system loads lessons from local or remote sources, **Then** all lessons should be validated using the established validation utilities and display properly
 8. **Given** I'm using the enhanced lesson interface, **When** I interact with study features, **Then** my progress should be persisted using the existing SessionContext and localStorage patterns
 
-### Edge Cases
-- What happens when a lesson has an empty vocabulary array in metadata?
-- How does the system handle lessons with content exceeding character count limits defined in the schema?
-- What occurs when Web Speech API is unavailable or audio synthesis fails for certain text segments?
-- How does the system behave when lesson schema validation fails for remote library sources?
-- What happens when pinyin-pro library fails to load or generate pinyin for certain characters?
-- How does the system handle lessons with missing or invalid source/book metadata properties?
-- What occurs when the existing LessonService or LibraryService encounters processing errors?
-- How does the system respond when localStorage is unavailable for session persistence?
+### Edge Cases & Error Handling Requirements
+- **Empty Vocabulary**: System MUST display lesson content normally and disable flashcard generation button when metadata.vocabulary is empty or missing
+- **Content Size Limits**: System MUST truncate lesson content at schema-defined character limits and display warning message to user
+- **Web Speech API Unavailable**: System MUST detect API availability and gracefully disable audio features with clear user notification while maintaining all other functionality
+- **Schema Validation Failures**: System MUST log validation errors, display user-friendly error message, and prevent lesson loading for remote sources with invalid schema
+- **Pinyin Generation Failures**: System MUST fallback to displaying original Chinese text without pinyin annotations and log generation errors for debugging
+- **Missing Source/Book Metadata**: System MUST accept lessons with missing optional metadata and display appropriate placeholders in lesson information
+- **Service Processing Errors**: System MUST implement error boundaries to catch service failures and display recovery options to users
+- **localStorage Unavailable**: System MUST detect storage availability and fallback to session-only progress tracking with user notification about non-persistent progress
 
 ## Requirements
 
 ### Functional Requirements
 - **FR-001**: System MUST replace the current annotation page navigation with a dedicated interactive lesson learning page when "Start" is clicked
 - **FR-002**: System MUST display lesson content with automatic pinyin annotations using existing pinyin-pro library
-- **FR-003**: System MUST provide audio playback capability using existing Web Speech API integration for text segments and vocabulary words
-- **FR-004**: System MUST highlight vocabulary words within lesson content using existing SegmentHighlight and VocabularyTooltip components
-- **FR-005**: System MUST provide a "Generate Flashcards" function that integrates with existing FlashcardService and SRS system
-- **FR-006**: System MUST provide a "Generate Quiz" function that integrates with existing QuizService for content-based questions
-- **FR-007**: System MUST implement the currently non-functional "Preview" button using existing Modal/Dialog patterns
-- **FR-008**: System MUST segment lesson content using existing TextSegmentationService for audio playback and study
-- **FR-009**: System MUST persist user progress using existing SessionContext and browser localStorage
+- **FR-003**: System MUST provide audio playback capability using existing Web Speech API integration for sentence-level segments with individual vocabulary words clickable within sentences
+- **FR-004**: System MUST highlight vocabulary words within lesson content using existing SegmentHighlight and VocabularyTooltip components, making them clickable for individual audio playback
+- **FR-005**: System MUST provide a "Generate Flashcards" floating action button that remains visible while viewing lesson content and integrates with existing FlashcardService and SRS system
+- **FR-006**: System MUST provide a "Generate Quiz" floating action button that remains visible while viewing lesson content and integrates with existing QuizService to create pronunciation-focused questions (multiple choice for vocabulary pronunciation and audio recognition where feasible)
+- **FR-007**: System MUST implement the currently non-functional "Preview" button using existing Modal/Dialog patterns to display basic lesson content with pinyin annotations, excluding audio playback, progress tracking, and study tool generation
+- **FR-008**: System MUST segment lesson content into sentence-level units using existing TextSegmentationService for audio playback and study
+- **FR-009**: System MUST persist lesson completion status (started/finished) and time spent using existing SessionContext and browser localStorage
 - **FR-010**: System MUST provide navigation controls using existing Router patterns and Navigation component
 - **FR-011**: System MUST handle lessons conforming to the standardized lesson schema with vocabulary array in metadata
 - **FR-012**: System MUST display lesson metadata using existing DifficultyBadge and Material-UI components
@@ -152,19 +163,19 @@ All lesson implementations must conform to the documented schema to ensure compa
 - [x] Requirements are testable and unambiguous  
 - [x] Success criteria are measurable
 - [x] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
+- [x] Dependencies and assumptions identified (existing services, schema validation, browser Web Speech API support)
 
 ---
 
 ## Execution Status
 *Updated by main() during processing*
 
-- [ ] User description parsed
-- [ ] Key concepts extracted
-- [ ] Ambiguities marked
-- [ ] User scenarios defined
-- [ ] Requirements generated
-- [ ] Entities identified
-- [ ] Review checklist passed
+- [x] User description parsed
+- [x] Key concepts extracted
+- [x] Ambiguities marked (resolved via clarification session)
+- [x] User scenarios defined
+- [x] Requirements generated
+- [x] Entities identified
+- [x] Review checklist passed
 
 ---

@@ -36,6 +36,12 @@ export const QuizPage = lazy(() =>
   }))
 );
 
+export const LessonPage = lazy(() => 
+  import('../components/templates/LessonPage').then(module => ({ 
+    default: module.LessonPage 
+  }))
+);
+
 // Service preloading functions for improved UX
 export const preloadServices = {
   library: () => import('../services/lessonLibraryService'),

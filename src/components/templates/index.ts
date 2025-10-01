@@ -8,6 +8,7 @@ export { AnnotationPage } from './AnnotationPage';
 export { QuizPage } from './QuizPage';
 export { FlashcardPage } from './FlashcardPage';
 export { LibraryPage } from './LibraryPage';
+export { LessonPage } from './LessonPage';
 
 // Export all types
 export type { HomePageProps } from './HomePage';

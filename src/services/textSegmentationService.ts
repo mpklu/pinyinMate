@@ -14,52 +14,29 @@ import { ANNOTATION_CONSTANTS } from '../types/annotation';
 import type { PerformanceMetrics } from '../types/common';
 
 /**
- * Simple fallback segmentation based on Chinese character patterns
- * This is a basic implementation that will be improved later
+ * Proper sentence-based segmentation for Chinese text
+ * Segments text by punctuation marks that end sentences/clauses
+ * Each segment contains a complete thought with its punctuation
  */
 const simpleChineseSegmentation = (text: string): string[] => {
+  // For the text: '你好！我叫李明。你叫什么名字？'
+  // Proper sentence segmentation should be: ['你好！', '我叫李明。', '你叫什么名字？']
+  
   const segments: string[] = [];
   let currentSegment = '';
   
-  const alphanumericRegex = /[a-zA-Z0-9]/;
-  const whitespaceRegex = /\s/;
-  
   for (const char of text) {
-    const charCode = char.charCodeAt(0);
+    currentSegment += char;
     
-    // Check if character is Chinese (CJK Unified Ideographs)
-    const isChinese = charCode >= 0x4e00 && charCode <= 0x9fff;
-    
-    if (isChinese) {
-      // For now, treat each Chinese character as a separate segment
-      if (currentSegment) {
-        segments.push(currentSegment.trim());
-        currentSegment = '';
-      }
-      segments.push(char);
-    } else if (alphanumericRegex.exec(char)) {
-      // Collect consecutive alphanumeric characters
-      currentSegment += char;
-    } else if (whitespaceRegex.exec(char)) {
-      // Whitespace - end current segment
-      if (currentSegment) {
-        segments.push(currentSegment.trim());
-        currentSegment = '';
-      }
-    } else {
-      // Punctuation or other characters - treat as separate segments
-      if (currentSegment) {
-        segments.push(currentSegment.trim());
-        currentSegment = '';
-      }
-      if (char.trim()) {
-        segments.push(char);
-      }
+    // Segment after sentence-ending punctuation marks
+    if (/[！？；：。]/.test(char)) {
+      segments.push(currentSegment.trim());
+      currentSegment = '';
     }
   }
   
-  // Add any remaining segment
-  if (currentSegment) {
+  // Add any remaining text as the final segment
+  if (currentSegment.trim()) {
     segments.push(currentSegment.trim());
   }
   

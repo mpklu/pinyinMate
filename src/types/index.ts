@@ -53,3 +53,14 @@ export type {
   QuizletExportRequest,
   AudioSynthesizeRequest,
 } from './library';
+
+// Enhanced lesson types for Interactive Lesson Learning Experience
+export type {
+  EnhancedLesson,
+  ProcessedLessonContent,
+  TextSegmentWithAudio,
+  VocabularyEntryWithPinyin,
+  LessonStudyProgress,
+  LessonStudyMaterials,
+  VocabularyReference,
+} from './lesson';

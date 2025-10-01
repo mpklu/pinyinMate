@@ -100,11 +100,14 @@ export const generateToneMarkedPinyin = async (text: string): Promise<string> =>
   
   try {
     // Use pinyin function with tone style 'symbol'
-    return pinyin.pinyin(text, {
+    const result = pinyin.pinyin(text, {
       toneType: 'symbol',
       type: 'string',
       nonZh: 'consecutive'
     });
+    
+    // Remove spaces before Chinese punctuation marks
+    return result.replace(/\s+([！？。；：])/g, '$1');
   } catch (error) {
     console.error('Tone marked pinyin generation failed:', error);
     return text; // Fallback to original text
