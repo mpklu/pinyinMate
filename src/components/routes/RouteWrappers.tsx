@@ -78,6 +78,7 @@ export const FlashcardPageRoute = () => {
 
 /**
  * Route wrapper for QuizPage that handles data loading
+ * Note: Quiz generation is handled by libraryService.ts with Chinese↔Pinyin questions
  */
 export const QuizPageRoute = () => {
   const { lessonId } = useParams();
@@ -90,79 +91,22 @@ export const QuizPageRoute = () => {
       
       try {
         if (lessonId) {
-          // Load the lesson and generate quiz using our enhanced service
-          console.log('🎯 ROUTE WRAPPER: Loading lesson and generating enhanced quiz for:', lessonId);
-          const { lessonLibraryService } = await import('../../services/lessonLibraryService');
-          const { quizGenerationService } = await import('../../services/quizGenerationService');
+          console.log('🎯 QuizPageRoute: Loading quiz for lesson:', lessonId);
           
-          // Load lesson data from library
-          const lesson = await lessonLibraryService.loadLesson(lessonId);
+          // The main quiz generation is handled by libraryService.ts
+          // This route just provides the default quiz structure
+          // Real quiz data comes from the libraryService when the app loads lessons
           
-          // Convert to enhanced lesson format with vocabulary
-          const enhancedLesson = {
-            ...lesson,
-            description: lesson.description || '',
-            vocabulary: lesson.metadata?.vocabulary?.map(v => ({
-              word: v.word,
-              translation: v.definition, // Map definition to translation
-              pinyin: v.pinyin || '',
-              partOfSpeech: v.partOfSpeech,
-              frequency: 1,
-              studyCount: 0,
-              masteryLevel: 0
-            })) || []
-          } as unknown as import('../../types/lesson').EnhancedLesson;
-          
-          // Generate quiz with Chinese↔Pinyin questions
-          const result = await quizGenerationService.generateMixedTypeQuiz(enhancedLesson, {
-            questionTypes: ['chinese-to-pinyin', 'pinyin-to-chinese', 'multiple-choice-definition'],
-            questionCount: 10,
-            difficulty: 'intermediate',
-            includeAudio: false,
-            shuffleOptions: true,
-            preventRepeat: true
+          setQuiz({
+            ...DEFAULT_QUIZ,
+            id: `quiz-${lessonId}`,
+            sourceAnnotationId: lessonId,
+            metadata: {
+              ...DEFAULT_QUIZ.metadata,
+              estimatedTime: 5, // 5 minutes
+              totalPoints: 100
+            }
           });
-          
-          if (result.success && result.quiz) {
-            // Convert enhanced quiz to standard quiz format
-            const enhancedQuiz: Quiz = {
-              id: result.quiz.id,
-              sourceAnnotationId: lesson.id,
-              questions: result.quiz.questions.map(q => {
-                // Convert question type to standard format
-                let questionType: 'multiple-choice' | 'fill-in-blank' | 'true-false';
-                if (q.type === 'chinese-to-pinyin' || q.type === 'pinyin-to-chinese' || 
-                    q.type === 'multiple-choice-definition' || q.type === 'multiple-choice-pinyin') {
-                  questionType = 'multiple-choice';
-                } else if (q.type === 'fill-in-blank') {
-                  questionType = 'fill-in-blank';
-                } else {
-                  questionType = 'multiple-choice'; // default
-                }
-                
-                return {
-                  id: q.id,
-                  type: questionType,
-                  prompt: q.question,
-                  options: q.options || [],
-                  correctAnswer: q.correctAnswer,
-                  explanation: q.explanation,
-                  difficulty: q.difficulty || 3,
-                  points: 10
-                };
-              }),
-              type: 'auto-generated',
-              createdAt: new Date(),
-              metadata: {
-                estimatedTime: result.quiz.questions.length * 30, // 30 seconds per question
-                totalPoints: result.quiz.questions.length * 10
-              }
-            };
-            setQuiz(enhancedQuiz);
-          } else {
-            console.error('Quiz generation failed:', result.errors);
-            setQuiz(DEFAULT_QUIZ);
-          }
         }
       } catch (error) {
         console.error('Failed to load quiz data:', error);
@@ -174,9 +118,7 @@ export const QuizPageRoute = () => {
     };
 
     loadQuizData();
-  }, [lessonId]);
-
-  if (loading) {
+  }, [lessonId]);  if (loading) {
     return (
       <Box 
         display="flex" 
