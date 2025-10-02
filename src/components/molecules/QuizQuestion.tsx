@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { CheckCircle, Cancel, Help } from '@mui/icons-material';
 import { Card, Button } from '../atoms';
+import { AnswerGrid } from './AnswerGrid';
 import type { LessonQuizQuestion } from '../../types/enhancedQuiz';
 
 export interface QuizQuestionProps {
@@ -159,30 +160,15 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
       case 'chinese-to-pinyin':
       case 'pinyin-to-chinese':
         return (
-          <FormControl component="fieldset" fullWidth>
-            <RadioGroup
-              value={currentAnswer}
-              onChange={handleMultipleChoiceChange}
-            >
-              {question.options?.map((option) => (
-                <OptionContainer key={option}>
-                  <FormControlLabel
-                    value={option}
-                    control={<Radio disabled={!interactive || completed} />}
-                    label={option}
-                    sx={{
-                      '& .MuiFormControlLabel-label': {
-                        fontSize: question.type === 'pinyin-to-chinese' ? '1.125rem' : '0.875rem',
-                        fontFamily: question.type === 'pinyin-to-chinese' 
-                          ? '"Noto Sans SC", "Microsoft YaHei", sans-serif' 
-                          : 'inherit',
-                      },
-                    }}
-                  />
-                </OptionContainer>
-              ))}
-            </RadioGroup>
-          </FormControl>
+          <AnswerGrid
+            options={question.options || []}
+            selectedAnswer={currentAnswer}
+            onAnswerSelect={handleAnswerChange}
+            disabled={!interactive || completed}
+            showCorrectAnswer={showAnswer}
+            correctAnswer={correctAnswer}
+            showFeedback={completed}
+          />
         );
 
       case 'fill-blank':

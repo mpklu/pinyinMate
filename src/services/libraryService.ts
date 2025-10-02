@@ -29,6 +29,7 @@ import type {
 
 import type { LessonFlashcard } from '../types/enhancedFlashcard';
 import type { LessonQuizQuestion } from '../types/enhancedQuiz';
+import { generateToneMarkedPinyin } from './pinyinService';
 
 // Configuration imports
 import remoteSourcesConfig from '../config/remote-sources.json';
@@ -478,14 +479,18 @@ export class LibraryServiceImpl implements LibraryService {
     
     console.log('🎯 LIBRARY SERVICE: Generating enhanced Chinese↔Pinyin quiz questions for lesson:', lesson.id);
     if (lesson.metadata.vocabulary) {
-      lesson.metadata.vocabulary.forEach((vocab, index) => {
+      for (const [index, vocab] of lesson.metadata.vocabulary.entries()) {
         // Generate Chinese↔Pinyin questions instead of translation questions
         const isChineseToPinyin = index % 2 === 0; // Alternate between question types
         
-        // Simple pinyin generation (in real app, you'd import pinyinService)
-        const generateSimplePinyin = (word: string) => {
-          // Basic pinyin mapping for common words (simplified for demo)
-          const pinyinMap: Record<string, string> = {
+        // Use proper pinyin service for accurate pronunciation
+        let wordPinyin: string;
+        try {
+          wordPinyin = await generateToneMarkedPinyin(vocab.word);
+        } catch (error) {
+          console.error('Failed to generate pinyin for', vocab.word, error);
+          // Fallback to basic mapping for critical words
+          const basicPinyinMap: Record<string, string> = {
             '这是': 'zhè shì',
             '家庭': 'jiā tíng', 
             '有': 'yǒu',
@@ -498,12 +503,16 @@ export class LibraryServiceImpl implements LibraryService {
             '我们': 'wǒ men',
             '一起': 'yī qǐ',
             '住': 'zhù',
-            '上海': 'shàng hǎi'
+            '上海': 'shàng hǎi',
+            '炎黄子孙': 'yán huáng zǐ sūn',
+            '中国': 'zhōng guó',
+            '学习': 'xué xí',
+            '朋友': 'péng yǒu',
+            '老师': 'lǎo shī',
+            '学生': 'xué shēng'
           };
-          return pinyinMap[word] || `${word}_pinyin`;
-        };
-        
-        const wordPinyin = generateSimplePinyin(vocab.word);
+          wordPinyin = basicPinyinMap[vocab.word] || vocab.word;
+        }
         
         // Generate realistic wrong pinyin options
         const generateWrongPinyin = (correctPinyin: string, wordIndex: number) => {
@@ -587,7 +596,7 @@ export class LibraryServiceImpl implements LibraryService {
             }
           });
         }
-      });
+      }
     }
 
     return questions;
