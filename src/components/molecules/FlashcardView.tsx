@@ -16,14 +16,12 @@ import {
   Fade,
 } from '@mui/material';
 import { 
-  Flip as FlipIcon,
-
-  Check as CorrectIcon,
-  Clear as IncorrectIcon,
-  Help as HintIcon,
+  Refresh as AgainIcon,
+  ThumbUp as EasyIcon,
+  RemoveRedEye as ShowIcon,
 } from '@mui/icons-material';
 
-import { ChineseText, PinyinText, AudioButton, DifficultyRating } from '../atoms';
+import { ChineseText, AudioButton, DifficultyRating } from '../atoms';
 import type { Flashcard } from '../../types/flashcard';
 import { pinyinService } from '../../services/pinyinService';
 
@@ -35,10 +33,8 @@ interface FlashcardViewProps {
   initialSide?: 'front' | 'back';
   /** Whether to show study controls (rating buttons) */
   showStudyControls?: boolean;
-  /** Whether to show audio button */
-  showAudio?: boolean;
-  /** Whether to show flip button */
-  showFlipButton?: boolean;
+
+
   /** Whether to show difficulty rating */
   showDifficulty?: boolean;
   /** Card size */
@@ -59,21 +55,54 @@ interface FlashcardViewProps {
 
 const StyledFlashcardContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'cardSize',
-})<{ cardSize?: 'small' | 'medium' | 'large' }>(({ cardSize = 'medium' }) => {
-  const sizeMap = {
-    small: { width: 240, height: 160 },
-    medium: { width: 320, height: 200 },
-    large: { width: 400, height: 250 },
+})<{ cardSize?: 'small' | 'medium' | 'large' }>(({ theme, cardSize = 'medium' }) => {
+  // Responsive sizing with 4:3 aspect ratio
+  const getResponsiveSize = () => {
+    const viewportWidth = '80vw';
+    const viewportHeight = '60vh';
+    
+    let maxWidth = '600px';
+    let maxHeight = '450px';
+    
+    if (cardSize === 'small') {
+      maxWidth = '400px';
+      maxHeight = '300px';
+    } else if (cardSize === 'large') {
+      maxWidth = '800px';
+      maxHeight = '600px';
+    }
+    
+    return {
+      width: `min(${viewportWidth}, ${maxWidth})`,
+      height: `min(${viewportHeight}, ${maxHeight})`,
+      // Maintain 4:3 aspect ratio on larger screens
+      aspectRatio: '4/3',
+      
+      // Mobile responsive adjustments
+      [theme.breakpoints.down('md')]: {
+        width: '95vw',
+        height: 'auto',
+        aspectRatio: '3/4', // Taller on mobile for better readability
+        maxWidth: '400px',
+        maxHeight: '533px', // 3:4 ratio
+      },
+      
+      [theme.breakpoints.down('sm')]: {
+        width: '90vw',
+        maxWidth: '350px',
+        maxHeight: '467px',
+      },
+    };
   };
-  
-  const { width, height } = sizeMap[cardSize];
   
   return {
     perspective: '1000px',
-    width,
-    height,
-    margin: 'auto',
+    margin: '0 auto',
     position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...getResponsiveSize(),
   };
 });
 
@@ -84,46 +113,56 @@ const StyledFlipCard = styled(Card, {
   height: '100%',
   position: 'relative',
   transformStyle: 'preserve-3d',
-  transition: `transform ${animationDuration}ms ease-in-out`,
+  transition: `transform ${animationDuration}ms ease-in-out, box-shadow 0.2s ease-in-out`,
   transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
   cursor: 'pointer',
   
   '&:hover': {
     boxShadow: theme.shadows[8],
+    transform: isFlipped ? 'rotateY(180deg) scale(1.02)' : 'rotateY(0deg) scale(1.02)',
+  },
+  
+  '&:active': {
+    transform: isFlipped ? 'rotateY(180deg) scale(0.98)' : 'rotateY(0deg) scale(0.98)',
   },
 }));
 
 const StyledCardSide = styled(CardContent, {
-  shouldForwardProp: (prop) => prop !== 'side',
-})<{ side: 'front' | 'back' }>(({ theme, side }) => ({
+  shouldForwardProp: (prop) => prop !== 'side' && prop !== 'isFlipped',
+})<{ side: 'front' | 'back'; isFlipped: boolean }>(({ theme, side, isFlipped }) => ({
   position: 'absolute',
+  top: 0,
+  left: 0,
   width: '100%',
   height: '100%',
-  backfaceVisibility: 'hidden',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
   textAlign: 'center',
-  padding: theme.spacing(2),
+  padding: theme.spacing(3),
   boxSizing: 'border-box',
+  backgroundColor: theme.palette.background.paper,
+  
+  // Responsive padding
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(2),
+  },
+  
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1.5),
+  },
+  
+  // Use opacity instead of backfaceVisibility for more reliable hiding
+  opacity: (side === 'front' && !isFlipped) || (side === 'back' && isFlipped) ? 1 : 0,
+  pointerEvents: (side === 'front' && !isFlipped) || (side === 'back' && isFlipped) ? 'auto' : 'none',
   
   ...(side === 'back' && {
     transform: 'rotateY(180deg)',
   }),
 }));
 
-const StyledControlsContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  bottom: theme.spacing(1),
-  right: theme.spacing(1),
-  display: 'flex',
-  gap: theme.spacing(0.5),
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(0.5),
-  backdropFilter: 'blur(4px)',
-}));
+
 
 const StyledStudyControls = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -155,8 +194,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
   flashcard,
   initialSide = 'front',
   showStudyControls = true,
-  showAudio = true,
-  showFlipButton = true,
+
   showDifficulty = false,
   size = 'medium',
   animationDuration = 600,
@@ -219,10 +257,6 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
     onStudyRating?.(rating);
   };
 
-  const handleAudioPlay = (text: string) => {
-    onAudioPlay?.(text);
-  };
-
   // Set up auto-flip
   React.useEffect(() => {
     if (autoFlipDelay > 0 && currentSide === 'front') {
@@ -241,8 +275,61 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 
   const isShowingBack = currentSide === 'back';
 
+  // Helper function to calculate responsive font sizes for Chinese text
+  const getChineseFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling
+    // clamp(min, preferred, max) adjusts smoothly based on viewport
+    const sizeMap = {
+      small: 'clamp(1.25rem, 3.5vw, 2.25rem)',     // Fluid from 1.25rem to 2.25rem
+      medium: 'clamp(1.5rem, 4.5vw, 2.875rem)',    // Fluid from 1.5rem to 2.875rem  
+      large: 'clamp(1.75rem, 5.5vw, 3.75rem)',     // Fluid from 1.75rem to 3.75rem
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to calculate responsive font sizes for pinyin text
+  const getPinyinFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling (smaller than Chinese text)
+    const sizeMap = {
+      small: 'clamp(0.75rem, 2vw, 1.25rem)',       // Fluid from 0.75rem to 1.25rem
+      medium: 'clamp(0.875rem, 2.5vw, 1.5rem)',    // Fluid from 0.875rem to 1.5rem
+      large: 'clamp(1rem, 3vw, 2rem)',             // Fluid from 1rem to 2rem
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to calculate responsive font sizes for definition text
+  const getDefinitionFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling (between pinyin and Chinese sizes)
+    const sizeMap = {
+      small: 'clamp(0.875rem, 2.2vw, 1.375rem)',   // Fluid from 0.875rem to 1.375rem
+      medium: 'clamp(1rem, 2.7vw, 1.5rem)',        // Fluid from 1rem to 1.5rem
+      large: 'clamp(1.125rem, 3.2vw, 1.625rem)',   // Fluid from 1.125rem to 1.625rem
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  // Helper function to get typography variant
+  const getTypographyVariant = () => {
+    if (size === 'small') return 'h6';
+    if (size === 'large') return 'h3';
+    return 'h4';
+  };
+
   return (
-    <StyledFlashcardContainer cardSize={size}>
+    <Box sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '60vh',
+      width: '100%',
+      padding: (theme) => ({ 
+        xs: theme.spacing(2), 
+        sm: theme.spacing(3), 
+        md: theme.spacing(4) 
+      }),
+    }}>
+      <StyledFlashcardContainer cardSize={size}>
       <StyledFlipCard
         isFlipped={isShowingBack}
         animationDuration={animationDuration}
@@ -250,7 +337,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         elevation={4}
       >
         {/* Front Side */}
-        <StyledCardSide side="front">
+        <StyledCardSide side="front" isFlipped={isShowingBack}>
           {/* Tags */}
           {flashcard.tags && flashcard.tags.length > 0 && (
             <StyledTagsContainer>
@@ -270,11 +357,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
           <ChineseText
             text={flashcard.front}
             showToneColors={true}
-            variant={(() => {
-              if (size === 'small') return 'h6';
-              if (size === 'large') return 'h4';
-              return 'h5';
-            })()}
+            variant={getTypographyVariant()}
+            sx={{
+              // Responsive font sizing for larger screens
+              fontSize: getChineseFontSizes(),
+            }}
           />
           
           {/* Question prompt for front */}
@@ -288,40 +375,122 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         </StyledCardSide>
 
         {/* Back Side */}
-        <StyledCardSide side="back">
-          {/* Pinyin */}
-          {(flashcard.back.pinyin || generatedPinyin) && (
-            <PinyinText
-              pinyin={flashcard.back.pinyin || generatedPinyin || ''}
-              showToneMarks={true}
-              initiallyVisible={true}
-              showToggle={false}
-              size={size === 'small' ? 'medium' : 'large'}
-              color="primary"
-            />
-          )}
+        <StyledCardSide side="back" isFlipped={isShowingBack}>
+          {/* Aligned Pinyin and Chinese Characters */}
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            {(flashcard.back.pinyin || generatedPinyin) ? (
+              <Box sx={{ display: 'inline-block' }}>
+                {/* Character-by-character alignment */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  gap: '0.5em',
+                  mb: 0.5 
+                }}>
+                  {flashcard.front.split('').map((char, index) => {
+                    const pinyinArray = (flashcard.back.pinyin || generatedPinyin || '').split(' ');
+                    const charPinyin = pinyinArray[index] || '';
+                    
+                    return (
+                      <Box 
+                        key={`${char}-${index}-${flashcard.id || 'flashcard'}`}
+                        sx={{ 
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          minWidth: '1.5em',
+                        }}
+                      >
+                        {/* Pinyin for this character */}
+                        <Typography 
+                          variant={size === 'small' ? 'body2' : 'body1'}
+                          color="primary.main"
+                          sx={{ 
+                            fontFamily: 'monospace',
+                            fontWeight: 500,
+                            fontSize: getPinyinFontSizes(),
+                            lineHeight: 1.2,
+                            mb: 0.25,
+                            textAlign: 'center',
+                            minHeight: '1.2em',
+                          }}
+                        >
+                          {charPinyin}
+                        </Typography>
+                        
+                        {/* Chinese character */}
+                        <ChineseText
+                          text={char}
+                          showToneColors={true}
+                          variant={getTypographyVariant()}
+                          sx={{
+                            fontSize: getChineseFontSizes(),
+                            lineHeight: 1,
+                            textAlign: 'center',
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+            ) : (
+              <>
+                <Typography variant="body2" color="warning.main" sx={{ mb: 0.5 }}>
+                  [Generating pinyin...]
+                </Typography>
+                {/* Show Chinese characters even when pinyin is loading */}
+                <ChineseText
+                  text={flashcard.front}
+                  showToneColors={true}
+                  variant={getTypographyVariant()}
+                  sx={{
+                    fontSize: getChineseFontSizes(),
+                  }}
+                />
+              </>
+            )}
+            
+            {/* Audio button */}
+            <Box sx={{ mt: 1 }} data-no-flip>
+              <AudioButton
+                text={flashcard.front}
+                audioUrl={flashcard.back.audioUrl}
+                size="medium"
+                onPlay={() => {
+                  // Only notify parent that audio started, don't trigger additional playback
+                  onAudioPlay?.(flashcard.front);
+                }}
+              />
+            </Box>
+          </Box>
           
           {/* Definition */}
-          {flashcard.back.definition && (
+          {flashcard.back.definition ? (
             <Typography 
               variant={size === 'small' ? 'body2' : 'body1'}
               color="text.primary"
-              sx={{ mt: 1, mb: 1 }}
+              sx={{ 
+                mt: 2, 
+                textAlign: 'center', 
+                fontWeight: 500,
+                // Responsive font sizing for definition
+                fontSize: getDefinitionFontSizes(),
+              }}
             >
               {flashcard.back.definition}
             </Typography>
-          )}
-          
-          {/* Example */}
-          {flashcard.back.example && (
+          ) : (
             <Typography 
-              variant="caption"
+              variant="body2" 
               color="text.secondary"
-              sx={{ fontStyle: 'italic', textAlign: 'center' }}
+              sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}
             >
-              Example: {flashcard.back.example}
+              [No definition available]
             </Typography>
           )}
+          
+
           
           {/* Difficulty Rating */}
           {showDifficulty && flashcard.srsData && (
@@ -338,67 +507,46 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         </StyledCardSide>
       </StyledFlipCard>
 
-      {/* Card Controls */}
-      <StyledControlsContainer data-no-flip>
-        {showFlipButton && (
-          <Tooltip title="Flip card" arrow>
-            <IconButton
-              size="small"
-              onClick={handleFlip}
-              disabled={isFlipping}
-            >
-              <FlipIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        
-        {showAudio && (flashcard.back.audioUrl || flashcard.front) && (
-          <AudioButton
-            text={flashcard.front}
-            audioUrl={flashcard.back.audioUrl}
-            size="small"
-            onPlay={() => handleAudioPlay(flashcard.front)}
-          />
-        )}
-      </StyledControlsContainer>
+
 
       {/* Study Controls */}
       {showStudyControls && isShowingBack && (
         <Fade in={isShowingBack} timeout={300}>
           <StyledStudyControls data-no-flip>
-            <Tooltip title="Again (Hard)" arrow>
+            <Tooltip title="Again - Show this card soon" arrow>
               <IconButton
                 color="error"
                 size="small"
                 onClick={() => handleStudyRating(1)}
               >
-                <IncorrectIcon />
+                <AgainIcon />
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="Good (Normal)" arrow>
+            <Tooltip title="Good - Normal interval" arrow>
               <IconButton
-                color="info"
+                color="primary"
                 size="small"
                 onClick={() => handleStudyRating(3)}
               >
-                <HintIcon />
+                <ShowIcon />
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="Easy (Perfect)" arrow>
+            <Tooltip title="Easy - Longer interval" arrow>
               <IconButton
                 color="success"
                 size="small"
                 onClick={() => handleStudyRating(5)}
               >
-                <CorrectIcon />
+                <EasyIcon />
               </IconButton>
             </Tooltip>
           </StyledStudyControls>
         </Fade>
       )}
-    </StyledFlashcardContainer>
+      </StyledFlashcardContainer>
+    </Box>
   );
 };
 

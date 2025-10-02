@@ -18,13 +18,13 @@ import {
 } from '@mui/material';
 import { CheckCircle, Cancel, Help } from '@mui/icons-material';
 import { Card, Button } from '../atoms';
-import type { QuizQuestion as QuizQuestionType } from '../../types';
+import type { LessonQuizQuestion } from '../../types/enhancedQuiz';
 
 export interface QuizQuestionProps {
   /**
    * Question data
    */
-  question: QuizQuestionType;
+  question: LessonQuizQuestion;
   /**
    * Question number/index
    */
@@ -91,13 +91,7 @@ const CorrectAnswerDisplay = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.success.main}30`,
 }));
 
-const ExplanationDisplay = styled(Box)(({ theme }) => ({
-  marginTop: theme.spacing(1),
-  padding: theme.spacing(1.5),
-  backgroundColor: theme.palette.info.main + '10',
-  borderRadius: theme.spacing(1),
-  border: `1px solid ${theme.palette.info.main}30`,
-}));
+
 
 const AnswerStatus = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -128,9 +122,12 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
     currentAnswer = localAnswer;
   }
 
-  const correctAnswer = Array.isArray(question.correctAnswer) ? 
-    question.correctAnswer.join(', ') : 
-    question.correctAnswer.toString();
+  let correctAnswer = '';
+  if (question.correctAnswer) {
+    correctAnswer = Array.isArray(question.correctAnswer) 
+      ? question.correctAnswer.join(', ') 
+      : question.correctAnswer.toString();
+  }
 
   const isCorrect = currentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
 
@@ -159,6 +156,8 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   const renderQuestionContent = () => {
     switch (question.type) {
       case 'multiple-choice':
+      case 'chinese-to-pinyin':
+      case 'pinyin-to-chinese':
         return (
           <FormControl component="fieldset" fullWidth>
             <RadioGroup
@@ -173,7 +172,10 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                     label={option}
                     sx={{
                       '& .MuiFormControlLabel-label': {
-                        fontSize: '0.875rem',
+                        fontSize: question.type === 'pinyin-to-chinese' ? '1.125rem' : '0.875rem',
+                        fontFamily: question.type === 'pinyin-to-chinese' 
+                          ? '"Noto Sans SC", "Microsoft YaHei", sans-serif' 
+                          : 'inherit',
                       },
                     }}
                   />
@@ -183,7 +185,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           </FormControl>
         );
 
-      case 'fill-in-blank':
+      case 'fill-blank':
         return (
           <TextField
             fullWidth
@@ -196,20 +198,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           />
         );
 
-      case 'matching':
-        return (
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            value={currentAnswer}
-            onChange={handleTextChange}
-            placeholder="Enter your matching pairs..."
-            disabled={!interactive || completed}
-            variant="outlined"
-            helperText="Enter one match per line (e.g., 你好 → nǐ hǎo)"
-          />
-        );
+
 
       case 'audio-recognition':
         return (
@@ -254,6 +243,17 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
     }
   };
 
+  // Safety check for malformed question data
+  if (!question?.id || !question?.question) {
+    return (
+      <Card sx={{ p: 2, m: 1 }}>
+        <Typography color="error">
+          Error: Invalid question data. Received: {JSON.stringify(question, null, 2)}
+        </Typography>
+      </Card>
+    );
+  }
+
   return (
     <QuestionContainer padding="large">
       <QuestionHeader>
@@ -261,9 +261,9 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           label={`Question ${questionNumber}`}
           size="small"
         />
-        {question.points && (
+        {Boolean(question.metadata?.difficulty) && (
           <Chip 
-            label={`${question.points} point${question.points !== 1 ? 's' : ''}`}
+            label={`Difficulty: ${question.metadata?.difficulty || 1}/5`}
             variant="outlined"
             size="small"
           />
@@ -271,7 +271,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
       </QuestionHeader>
 
       <QuestionPrompt>
-        {question.prompt}
+        {question.question}
       </QuestionPrompt>
 
       {renderQuestionContent()}
@@ -319,13 +319,8 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         </CorrectAnswerDisplay>
       )}
 
-      {question.explanation && (showAnswer || completed) && (
-        <ExplanationDisplay>
-          <Typography variant="body2" color="info.main">
-            <strong>Explanation:</strong> {question.explanation}
-          </Typography>
-        </ExplanationDisplay>
-      )}
+            {/* Explanation - Note: LessonQuizQuestion doesn't have explanation field currently */}
+      {/* Future enhancement: Add explanation to LessonQuizQuestion metadata */}
     </QuestionContainer>
   );
 };

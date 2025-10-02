@@ -7,8 +7,8 @@
       "name": "Beginner Lessons",
       "description": "Basic Chinese texts for beginners",
       "difficulty": "beginner",
-      "totalLessons": 3,
-      "estimatedTime": 45,
+      "totalLessons": 2,
+      "estimatedTime": 35,
       "lessons": [
         {
           "id": "greetings",
@@ -39,21 +39,6 @@
             "characterCount": 68,
             "estimatedTime": 20
           }
-        },
-        {
-          "id": "numbers",
-          "title": "Numbers 1-10",
-          "description": "Basic counting in Chinese",
-          "source": {
-            "type": "local",
-            "path": "/lessons/beginner/numbers.json"
-          },
-          "metadata": {
-            "difficulty": "beginner",
-            "tags": ["numbers", "counting", "basic"],
-            "characterCount": 30,
-            "estimatedTime": 10
-          }
         }
       ]
     },
@@ -62,8 +47,8 @@
       "name": "Intermediate Lessons", 
       "description": "More complex Chinese texts for intermediate learners",
       "difficulty": "intermediate",
-      "totalLessons": 2,
-      "estimatedTime": 60,
+      "totalLessons": 3,
+      "estimatedTime": 90,
       "lessons": [
         {
           "id": "weather",
@@ -92,6 +77,21 @@
             "difficulty": "intermediate",
             "tags": ["shopping", "money", "conversation"],
             "characterCount": 95,
+            "estimatedTime": 30
+          }
+        },
+        {
+          "id": "earlies_chinese",
+          "title": "Earliest Chinese",
+          "description": "Learn about the earliest Chinese civilization",
+          "source": {
+            "type": "local",
+            "path": "/lessons/intermediate/earlies_chinese.json"
+          },
+          "metadata": {
+            "difficulty": "intermediate",
+            "tags": ["history", "culture", "origins"],
+            "characterCount": 500,
             "estimatedTime": 30
           }
         }

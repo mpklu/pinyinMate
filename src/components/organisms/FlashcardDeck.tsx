@@ -3,7 +3,7 @@
  * Interactive flashcard study interface with SRS
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -13,15 +13,25 @@ import {
   Stack,
   Chip,
   styled,
+  Drawer,
+  Slider,
+  TextField,
+  FormControlLabel,
+  Switch,
+  Divider,
+  Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   NavigateBefore,
   NavigateNext,
   Shuffle,
   Replay,
+  PlayArrow,
+  Pause,
 } from '@mui/icons-material';
 
-import { FlashcardPreview } from '../molecules/FlashcardPreview';
+import FlashcardView from '../molecules/FlashcardView';
 import { LoadingSpinner } from '../atoms/LoadingSpinner';
 import { ErrorMessage } from '../atoms/ErrorMessage';
 
@@ -30,11 +40,16 @@ import type { Flashcard, FlashcardGenerateRequest } from '../../types/flashcard'
 
 // Styled components
 const DeckContainer = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  minHeight: 500,
+  padding: theme.spacing(2),
+  minHeight: 'calc(100vh - 160px)', // Full height minus margins
+  margin: theme.spacing(2),
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(2),
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(3),
+    margin: theme.spacing(3),
+  },
 }));
 
 const CardContainer = styled(Box)({
@@ -51,6 +66,20 @@ const NavigationBar = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   padding: theme.spacing(1),
   borderTop: `1px solid ${theme.palette.divider}`,
+  minHeight: '64px',
+}));
+
+const NavigationSection = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  flex: 1,
+  '&.center': {
+    justifyContent: 'center',
+  },
+  '&.right': {
+    justifyContent: 'flex-end',
+  },
 }));
 
 const StatsContainer = styled(Box)(({ theme }) => ({
@@ -83,10 +112,10 @@ export interface FlashcardDeckProps {
   allowShuffle?: boolean;
   /** Custom CSS class */
   className?: string;
-  /** Callback when card is studied */
-  onCardStudied?: (cardId: string, correct: boolean) => void;
-  /** Callback when deck is completed */
-  onDeckComplete?: (stats: { total: number; correct: number; accuracy: number }) => void;
+  /** Settings drawer open state */
+  settingsOpen?: boolean;
+  /** Callback when settings drawer should be closed */
+  onCloseSettings?: () => void;
 }
 
 export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
@@ -98,8 +127,8 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   showStats = true,
   allowShuffle = true,
   className,
-  onCardStudied,
-  onDeckComplete,
+  settingsOpen = false,
+  onCloseSettings,
 }) => {
   // State for async flashcard generation
   const [isGenerating, setIsGenerating] = useState(false);
@@ -185,6 +214,16 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [studyComplete, setStudyComplete] = useState(false);
+  
+  // Auto-play state
+  const [isAutoPlay, setIsAutoPlay] = useState(false);
+  const [autoPlayTime, setAutoPlayTime] = useState(5); // seconds
+  const [autoPlayProgress, setAutoPlayProgress] = useState(0); // 0-100 progress
+  const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Settings state
+  const [tempAutoPlayTime, setTempAutoPlayTime] = useState(autoPlayTime);
 
   // Initialize flashcards
   useEffect(() => {
@@ -202,52 +241,85 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     initializeFlashcards();
   }, [initialFlashcards, sourceAnnotation, generateFlashcardsFromAnnotation, generateSimpleFlashcards, convertToStudyCards]);
 
-  // Handle card study (correct/incorrect)
-  const handleCardStudy = useCallback((correct: boolean) => {
-    const currentCard = flashcards[currentIndex];
-    if (!currentCard) return;
-
-    // Update flashcard state
-    setFlashcards(prev => prev.map((card, index) => 
-      index === currentIndex 
-        ? { ...card, studied: true, correct }
-        : card
-    ));
-
-    // Notify parent
-    onCardStudied?.(currentCard.id, correct);
-
-    // Move to next card
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= flashcards.length) {
-      // Deck completed
-      const updatedCards = flashcards.map((card, index) => 
-        index === currentIndex 
-          ? { ...card, studied: true, correct }
-          : card
-      );
-      const correctCount = updatedCards.filter(card => card.correct).length;
-      const accuracy = (correctCount / updatedCards.length) * 100;
+  // Auto-play timer effect with progress tracking
+  useEffect(() => {
+    if (isAutoPlay && !studyComplete && flashcards.length > 0) {
+      // Reset progress
+      setAutoPlayProgress(0);
       
-      setStudyComplete(true);
-      onDeckComplete?.({
-        total: updatedCards.length,
-        correct: correctCount,
-        accuracy,
-      });
+      // Progress update interval (update every 100ms for smooth animation)
+      const progressInterval = 100;
+      const totalTime = autoPlayTime * 1000;
+      const progressStep = (progressInterval / totalTime) * 100;
+      
+      // Progress timer - extracted to reduce nesting
+      let currentProgress = 0;
+      
+      const updateProgress = () => {
+        currentProgress += progressStep;
+        
+        if (currentProgress >= 100) {
+          // Time to advance to next card
+          if (currentIndex < flashcards.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+          } else {
+            // Stop auto-play at the end
+            setIsAutoPlay(false);
+          }
+          setAutoPlayProgress(0); // Reset for next card
+        } else {
+          setAutoPlayProgress(currentProgress);
+          progressTimerRef.current = setTimeout(updateProgress, progressInterval);
+        }
+      };
+      
+      // Start progress tracking
+      progressTimerRef.current = setTimeout(updateProgress, progressInterval);
     } else {
-      setCurrentIndex(nextIndex);
+      // Reset progress when auto-play is off
+      setAutoPlayProgress(0);
     }
-  }, [flashcards, currentIndex, onCardStudied, onDeckComplete]);
 
-  // Navigation handlers
-  const handlePrevious = useCallback(() => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
+    return () => {
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+    };
+  }, [isAutoPlay, currentIndex, flashcards.length, autoPlayTime, studyComplete]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (autoPlayTimerRef.current) {
+        clearTimeout(autoPlayTimerRef.current);
+        autoPlayTimerRef.current = null;
+      }
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+    };
   }, []);
 
+  // Navigation handlers - pause auto-play on manual interaction
+  const handlePrevious = useCallback(() => {
+    // Pause auto-play and reset progress on manual navigation
+    if (isAutoPlay) {
+      setIsAutoPlay(false);
+      setAutoPlayProgress(0);
+    }
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  }, [isAutoPlay]);
+
   const handleNext = useCallback(() => {
+    // Pause auto-play and reset progress on manual navigation  
+    if (isAutoPlay) {
+      setIsAutoPlay(false);
+      setAutoPlayProgress(0);
+    }
     setCurrentIndex(prev => Math.min(flashcards.length - 1, prev + 1));
-  }, [flashcards.length]);
+  }, [flashcards.length, isAutoPlay]);
 
   // Shuffle deck
   const handleShuffle = useCallback(() => {
@@ -267,7 +339,35 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     setFlashcards(resetCards);
     setCurrentIndex(0);
     setStudyComplete(false);
+    setIsAutoPlay(false); // Stop auto-play on reset
+    setAutoPlayProgress(0); // Reset progress
   }, [flashcards]);
+
+  // Auto-play toggle handler
+  const handleAutoPlayToggle = useCallback(() => {
+    setIsAutoPlay(prev => {
+      const newAutoPlay = !prev;
+      if (!newAutoPlay) {
+        setAutoPlayProgress(0); // Reset progress when stopping
+      }
+      return newAutoPlay;
+    });
+  }, []);
+
+  // Settings handlers
+  const handleSettingsSave = useCallback(() => {
+    setAutoPlayTime(tempAutoPlayTime);
+    if (onCloseSettings) {
+      onCloseSettings();
+    }
+  }, [tempAutoPlayTime, onCloseSettings]);
+
+  const handleSettingsCancel = useCallback(() => {
+    setTempAutoPlayTime(autoPlayTime); // Reset to current value
+    if (onCloseSettings) {
+      onCloseSettings();
+    }
+  }, [autoPlayTime, onCloseSettings]);
 
   // This useEffect is removed - flashcard initialization is now handled above
 
@@ -384,34 +484,19 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
       {!studyComplete ? (
         <CardContainer>
           {currentCard && (
-            <FlashcardPreview
+            <FlashcardView
               flashcard={currentCard}
-              interactive
-              onClick={() => {}} // placeholder for flip functionality
+              showStudyControls={false}
+              size="large"
+              onAudioPlay={(text: string) => {
+                // Audio playback is handled by AudioButton internally
+                // This callback is just for notification/analytics
+                console.log('Audio playback started for:', text);
+              }}
             />
           )}
           
-          {/* Study buttons */}
-          {currentCard && (
-            <Stack direction="row" spacing={2} mt={2}>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleCardStudy(false)}
-                size="large"
-              >
-                Incorrect
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => handleCardStudy(true)}
-                size="large"
-              >
-                Correct
-              </Button>
-            </Stack>
-          )}
+          {/* Card will auto-advance after flip or user can navigate manually */}
         </CardContainer>
       ) : (
         /* Study Complete */
@@ -444,44 +529,169 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
       {/* Navigation */}
       {!studyComplete && (
         <NavigationBar>
-          <Box display="flex" alignItems="center" gap={1}>
-            <IconButton 
-              onClick={handlePrevious} 
-              disabled={currentIndex === 0}
-              size="small"
-            >
-              <NavigateBefore />
-            </IconButton>
-            
-            <IconButton 
-              onClick={handleNext} 
-              disabled={currentIndex === flashcards.length - 1}
-              size="small"
-            >
-              <NavigateNext />
-            </IconButton>
-          </Box>
+          {/* Left: Auto-play toggle */}
+          <NavigationSection>
+            <Tooltip title={isAutoPlay ? `Pause auto-play (${Math.ceil((100 - autoPlayProgress) * autoPlayTime / 100)}s remaining)` : 'Start auto-play'}>
+              <Box sx={{ 
+                position: 'relative', 
+                display: 'inline-flex',
+                width: 40,
+                height: 40,
+              }}>
+                <IconButton 
+                  onClick={handleAutoPlayToggle}
+                  size="small"
+                  color={isAutoPlay ? 'primary' : 'default'}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                  }}
+                >
+                  {isAutoPlay ? <Pause /> : <PlayArrow />}
+                </IconButton>
+                <CircularProgress
+                  variant="determinate"
+                  value={autoPlayProgress}
+                  size={40}
+                  thickness={3}
+                  sx={{
+                    position: 'absolute',
+                    top: 1.5,
+                    left: 1.5,
+                    color: isAutoPlay ? 'primary.main' : 'grey.300',
+                    opacity: isAutoPlay ? 1 : 0.3,
+                    transition: 'opacity 0.3s ease',
+                    pointerEvents: 'none', // Ensure clicks go through to button
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          </NavigationSection>
 
-          <Box display="flex" alignItems="center" gap={1}>
-            {allowShuffle && (
+          {/* Center: Navigation buttons */}
+          <NavigationSection className="center">
+            <Tooltip title="Previous card">
               <IconButton 
-                onClick={handleShuffle}
+                onClick={handlePrevious} 
+                disabled={currentIndex === 0}
                 size="small"
-                color={isShuffled ? 'primary' : 'default'}
               >
-                <Shuffle />
+                <NavigateBefore />
               </IconButton>
+            </Tooltip>
+            
+            <Tooltip title="Next card">
+              <IconButton 
+                onClick={handleNext} 
+                disabled={currentIndex === flashcards.length - 1}
+                size="small"
+              >
+                <NavigateNext />
+              </IconButton>
+            </Tooltip>
+          </NavigationSection>
+
+          {/* Right: Shuffle and Reset */}
+          <NavigationSection className="right">
+            {allowShuffle && (
+              <Tooltip title={isShuffled ? 'Cards are shuffled' : 'Shuffle deck'}>
+                <IconButton 
+                  onClick={handleShuffle}
+                  size="small"
+                  color={isShuffled ? 'primary' : 'default'}
+                >
+                  <Shuffle />
+                </IconButton>
+              </Tooltip>
             )}
             
-            <IconButton 
-              onClick={handleReset}
-              size="small"
-            >
-              <Replay />
-            </IconButton>
-          </Box>
+            <Tooltip title="Reset deck">
+              <IconButton 
+                onClick={handleReset}
+                size="small"
+              >
+                <Replay />
+              </IconButton>
+            </Tooltip>
+          </NavigationSection>
         </NavigationBar>
       )}
+
+      {/* Settings Drawer */}
+      <Drawer
+        anchor="right"
+        open={settingsOpen}
+        onClose={handleSettingsCancel}
+      >
+        <Box sx={{ width: 300, p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Flashcard Settings
+          </Typography>
+          
+          <Divider sx={{ mb: 3 }} />
+          
+          <Typography variant="subtitle1" gutterBottom>
+            Auto-play Settings
+          </Typography>
+          
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Time per card (seconds)
+            </Typography>
+            
+            <Slider
+              value={tempAutoPlayTime}
+              onChange={(_, value) => setTempAutoPlayTime(Array.isArray(value) ? value[0] : value)}
+              min={1}
+              max={30}
+              step={1}
+              marks={[
+                { value: 1, label: '1s' },
+                { value: 5, label: '5s' },
+                { value: 10, label: '10s' },
+                { value: 15, label: '15s' },
+                { value: 30, label: '30s' },
+              ]}
+              valueLabelDisplay="on"
+              sx={{ mb: 2 }}
+            />
+            
+            <TextField
+              type="number"
+              label="Seconds"
+              value={tempAutoPlayTime}
+              onChange={(e) => setTempAutoPlayTime(Math.max(1, Math.min(30, Number(e.target.value))))}
+              slotProps={{
+                htmlInput: { min: 1, max: 30 }
+              }}
+              size="small"
+              fullWidth
+            />
+          </Box>
+          
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isAutoPlay}
+                onChange={(e) => setIsAutoPlay(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Auto-play enabled"
+          />
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button onClick={handleSettingsCancel} variant="outlined">
+              Cancel
+            </Button>
+            <Button onClick={handleSettingsSave} variant="contained">
+              Save
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
     </DeckContainer>
   );
 };

@@ -1,0 +1,206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pinyinmate.com/schemas/lesson.json",
+  "title": "PinyinMate Lesson Schema",
+  "description": "JSON Schema for Chinese lesson content in PinyinMate application",
+  "type": "object",
+  "required": ["id", "title", "description", "content", "metadata"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9-_]+$",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Unique lesson identifier within library"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Display title of the lesson"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Brief description of lesson content"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "description": "Main Chinese text content"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "difficulty",
+        "tags", 
+        "characterCount",
+        "source",
+        "book",
+        "vocabulary",
+        "grammarPoints",
+        "culturalNotes",
+        "estimatedTime",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"],
+          "description": "Lesson difficulty level"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "minItems": 1,
+          "maxItems": 50,
+          "uniqueItems": true,
+          "description": "Searchable topic tags"
+        },
+        "characterCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of Chinese characters in content"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Content source attribution"
+        },
+        "book": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Textbook reference if applicable"
+        },
+        "vocabulary": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/vocabularyEntry"
+          },
+          "description": "List of vocabulary entries for the lesson"
+        },
+        "grammarPoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": "Key grammar concepts covered"
+        },
+        "culturalNotes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "description": "Cultural context information"
+        },
+        "estimatedTime": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "description": "Estimated study time in minutes"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp in ISO 8601 format"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp in ISO 8601 format"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audio": {
+      "type": "object",
+      "required": ["url", "segments", "duration"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Audio file URL or path"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/audioSegment"
+          },
+          "description": "Timed audio segments"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total audio duration in seconds"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Optional audio data"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "vocabularyEntry": {
+      "type": "object",
+      "required": ["word", "definition"],
+      "properties": {
+        "word": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Chinese word or phrase"
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "English definition or translation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audioSegment": {
+      "type": "object",
+      "required": ["start", "end", "text"],
+      "properties": {
+        "start": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Start time in seconds"
+        },
+        "end": {
+          "type": "number",
+          "minimum": 0,
+          "description": "End time in seconds"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Text corresponding to this audio segment"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

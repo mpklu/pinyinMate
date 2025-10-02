@@ -7,60 +7,44 @@
     "difficulty": "beginner",
     "tags": ["greetings", "basic", "conversation", "introductions"],
     "characterCount": 45,
+    "source": "PinyinMate Sample Content",
+    "book": null,
     "vocabulary": [
       {
         "word": "你好",
-        "pinyin": "nǐ hǎo",
-        "definition": "hello",
-        "partOfSpeech": "greeting"
+        "definition": "hello"
       },
       {
         "word": "我是",
-        "pinyin": "wǒ shì",
-        "definition": "I am",
-        "partOfSpeech": "phrase"
+        "definition": "I am"
       },
       {
         "word": "很高兴",
-        "pinyin": "hěn gāo xìng",
-        "definition": "very happy/pleased",
-        "partOfSpeech": "adjective"
+        "definition": "very happy/pleased"
       },
       {
         "word": "认识",
-        "pinyin": "rèn shi",
-        "definition": "to know/meet",
-        "partOfSpeech": "verb"
+        "definition": "to know/meet"
       },
       {
         "word": "叫",
-        "pinyin": "jiào",
-        "definition": "to be called",
-        "partOfSpeech": "verb"
+        "definition": "to be called"
       },
       {
         "word": "什么",
-        "pinyin": "shén me",
-        "definition": "what",
-        "partOfSpeech": "question word"
+        "definition": "what"
       },
       {
         "word": "名字",
-        "pinyin": "míng zi",
-        "definition": "name",
-        "partOfSpeech": "noun"
+        "definition": "name"
       },
       {
         "word": "来自",
-        "pinyin": "lái zì",
-        "definition": "to come from",
-        "partOfSpeech": "verb"
+        "definition": "to come from"
       },
       {
         "word": "北京",
-        "pinyin": "běi jīng",
-        "definition": "Beijing",
-        "partOfSpeech": "proper noun"
+        "definition": "Beijing"
       }
     ],
     "grammarPoints": [

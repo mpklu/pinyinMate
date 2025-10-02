@@ -1,10 +1,12 @@
 /**
- * Service Enhancement for Error Handling
- * Integrates enhanced error handling into existing library and audio services
+ * Enhanced Services Integration
+ * Integrates service coordinator with existing services for comprehensive functionality
  */
 
 import { errorHandler, ErrorCode } from './errorHandler';
+import { serviceCoordinator } from './serviceCoordinator';
 import type { AudioSynthesizeRequest, AudioSynthesizeResponse } from '../types/library';
+import type { EnhancedLesson, LessonStudyProgress } from '../types/lesson';
 
 // Define lesson data type for better type safety
 interface LessonData {

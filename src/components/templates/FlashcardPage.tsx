@@ -120,6 +120,9 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
     isPaused: !isActive,
   });
 
+  // Settings state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   // Calculate session statistics
   const totalCards = segments.length;
   const actualCardsRemaining = cardsRemaining ?? (totalCards - sessionState.studiedCards.size);
@@ -168,6 +171,16 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
     });
     onSessionRestart?.();
   }, [onSessionRestart]);
+
+  // Settings handlers
+  const handleOpenSettings = useCallback(() => {
+    setSettingsOpen(true);
+    onOpenSettings?.();
+  }, [onOpenSettings]);
+
+  const handleCloseSettings = useCallback(() => {
+    setSettingsOpen(false);
+  }, []);
 
   const handleDeckComplete = useCallback((stats: { total: number; correct: number; accuracy: number }) => {
     const sessionStats: StudySessionStats = {
@@ -238,7 +251,7 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
           {showStats && (
             <IconButton
               color="inherit"
-              onClick={onOpenSettings}
+              onClick={handleOpenSettings}
               aria-label="Study settings"
             >
               <Settings />
@@ -302,13 +315,11 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
           segments={segments}
           flashcards={flashcards}
           title={deckTitle}
-          showStats={false} // We handle stats at page level
+          showStats={showStats}
           allowShuffle={true}
-          onCardStudied={handleCardStudied}
-          onDeckComplete={handleDeckComplete}
-        />
-
-        {/* Floating Study Indicator */}
+          settingsOpen={settingsOpen}
+          onCloseSettings={handleCloseSettings}
+        />        {/* Floating Study Indicator */}
         <Fab
           size="small"
           color={sessionState.isPaused ? 'secondary' : 'primary'}

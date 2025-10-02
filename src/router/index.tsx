@@ -11,6 +11,7 @@ import {
   AnnotationPage, 
   FlashcardPage, 
   QuizPage,
+  LessonPage,
   preloadServices 
 } from '../utils/lazyLoading';
 
@@ -90,8 +91,24 @@ export const router = createBrowserRouter([
         element: <QuizPage />,
         loader: async () => {
           // Preload quiz and related services
-          preloadServices.quiz();
+          // Quiz generation now handled by libraryService.ts
+          preloadServices.library();
           preloadServices.audio();
+          return null;
+        }
+      },
+      {
+        path: "lesson/:id",
+        element: <LessonPage />,
+        loader: async () => {
+          // Preload all enhanced lesson services
+          await Promise.all([
+            preloadServices.library(),
+            preloadServices.textSegmentation(),
+            preloadServices.pinyin(),
+            preloadServices.audio(),
+            preloadServices.srs(),
+          ]);
           return null;
         }
       }

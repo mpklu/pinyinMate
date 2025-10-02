@@ -7,120 +7,84 @@
     "difficulty": "intermediate",
     "tags": ["weather", "seasons", "nature", "daily life"],
     "characterCount": 120,
+    "source": "PinyinMate Sample Content",
+    "book": null,
     "vocabulary": [
       {
         "word": "今天",
-        "pinyin": "jīn tiān",
-        "definition": "today",
-        "partOfSpeech": "noun"
+        "definition": "today"
       },
       {
         "word": "天气",
-        "pinyin": "tiān qì",
-        "definition": "weather",
-        "partOfSpeech": "noun"
+        "definition": "weather"
       },
       {
         "word": "阳光",
-        "pinyin": "yáng guāng",
-        "definition": "sunshine",
-        "partOfSpeech": "noun"
+        "definition": "sunshine"
       },
       {
         "word": "明媚",
-        "pinyin": "míng mèi",
-        "definition": "bright and beautiful",
-        "partOfSpeech": "adjective"
+        "definition": "bright and beautiful"
       },
       {
         "word": "春天",
-        "pinyin": "chūn tiān",
-        "definition": "spring",
-        "partOfSpeech": "noun"
+        "definition": "spring"
       },
       {
         "word": "花儿",
-        "pinyin": "huār",
-        "definition": "flowers",
-        "partOfSpeech": "noun"
+        "definition": "flowers"
       },
       {
         "word": "开",
-        "pinyin": "kāi",
-        "definition": "to bloom/open",
-        "partOfSpeech": "verb"
+        "definition": "to bloom/open"
       },
       {
         "word": "喜欢",
-        "pinyin": "xǐ huan",
-        "definition": "to like",
-        "partOfSpeech": "verb"
+        "definition": "to like"
       },
       {
         "word": "温暖",
-        "pinyin": "wēn nuǎn",
-        "definition": "warm",
-        "partOfSpeech": "adjective"
+        "definition": "warm"
       },
       {
         "word": "明天",
-        "pinyin": "míng tiān",
-        "definition": "tomorrow",
-        "partOfSpeech": "noun"
+        "definition": "tomorrow"
       },
       {
         "word": "可能",
-        "pinyin": "kě néng",
-        "definition": "maybe/possibly",
-        "partOfSpeech": "adverb"
+        "definition": "maybe/possibly"
       },
       {
         "word": "下雨",
-        "pinyin": "xià yǔ",
-        "definition": "to rain",
-        "partOfSpeech": "verb"
+        "definition": "to rain"
       },
       {
         "word": "记得",
-        "pinyin": "jì de",
-        "definition": "to remember",
-        "partOfSpeech": "verb"
+        "definition": "to remember"
       },
       {
         "word": "雨伞",
-        "pinyin": "yǔ sǎn",
-        "definition": "umbrella",
-        "partOfSpeech": "noun"
+        "definition": "umbrella"
       },
       {
         "word": "冬天",
-        "pinyin": "dōng tiān",
-        "definition": "winter",
-        "partOfSpeech": "noun"
+        "definition": "winter"
       },
       {
         "word": "冷",
-        "pinyin": "lěng",
-        "definition": "cold",
-        "partOfSpeech": "adjective"
+        "definition": "cold"
       },
       {
         "word": "穿",
-        "pinyin": "chuān",
-        "definition": "to wear",
-        "partOfSpeech": "verb"
+        "definition": "to wear"
       },
       {
         "word": "厚",
-        "pinyin": "hòu",
-        "definition": "thick",
-        "partOfSpeech": "adjective"
+        "definition": "thick"
       },
       {
         "word": "衣服",
-        "pinyin": "yī fu",
-        "definition": "clothes",
-        "partOfSpeech": "noun"
+        "definition": "clothes"
       }
     ],
     "grammarPoints": [

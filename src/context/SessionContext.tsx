@@ -1,8 +1,10 @@
-import React, { createContext, useReducer, useMemo } from 'react';
+import React, { createContext, useReducer, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { TextAnnotation } from '../types/annotation';
 import type { Quiz } from '../types/quiz';
 import type { Flashcard } from '../types/flashcard';
+import type { EnhancedLesson, LessonStudyProgress } from '../types/lesson';
+import { enhancedLessonService } from '../services/simpleEnhancedIntegration';
 
 // Session state interface
 export interface SessionState {
@@ -10,6 +12,11 @@ export interface SessionState {
   currentAnnotation: TextAnnotation | null;
   currentQuiz: Quiz | null;
   currentFlashcards: Flashcard[];
+  
+  // Enhanced lesson support
+  currentLesson: EnhancedLesson | null;
+  lessonProgress: LessonStudyProgress | null;
+  activeSessionId: string | null;
   
   // UI preferences
   showPinyin: boolean;
@@ -36,6 +43,9 @@ const initialState: SessionState = {
   currentAnnotation: null,
   currentQuiz: null,
   currentFlashcards: [],
+  currentLesson: null,
+  lessonProgress: null,
+  activeSessionId: null,
   showPinyin: true,
   showDefinitions: true,
   showToneMarks: true,
@@ -54,6 +64,10 @@ export type SessionAction =
   | { type: 'SET_CURRENT_ANNOTATION'; payload: TextAnnotation }
   | { type: 'SET_CURRENT_QUIZ'; payload: Quiz }
   | { type: 'SET_CURRENT_FLASHCARDS'; payload: Flashcard[] }
+  | { type: 'SET_CURRENT_LESSON'; payload: EnhancedLesson }
+  | { type: 'SET_LESSON_PROGRESS'; payload: LessonStudyProgress }
+  | { type: 'SET_ACTIVE_SESSION'; payload: string | null }
+  | { type: 'UPDATE_LESSON_PROGRESS'; payload: Partial<LessonStudyProgress> }
   | { type: 'TOGGLE_PINYIN' }
   | { type: 'TOGGLE_DEFINITIONS' }
   | { type: 'TOGGLE_TONE_MARKS' }
@@ -85,6 +99,35 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         ...state,
         currentFlashcards: action.payload,
         error: null,
+      };
+    
+    case 'SET_CURRENT_LESSON':
+      return {
+        ...state,
+        currentLesson: action.payload,
+        error: null,
+      };
+    
+    case 'SET_LESSON_PROGRESS':
+      return {
+        ...state,
+        lessonProgress: action.payload,
+        error: null,
+      };
+    
+    case 'SET_ACTIVE_SESSION':
+      return {
+        ...state,
+        activeSessionId: action.payload,
+      };
+    
+    case 'UPDATE_LESSON_PROGRESS':
+      return {
+        ...state,
+        lessonProgress: state.lessonProgress ? {
+          ...state.lessonProgress,
+          ...action.payload
+        } : null,
       };
     
     case 'TOGGLE_PINYIN':
@@ -156,6 +199,15 @@ export interface SessionContextType {
   setCurrentAnnotation: (annotation: TextAnnotation) => void;
   setCurrentQuiz: (quiz: Quiz) => void;
   setCurrentFlashcards: (flashcards: Flashcard[]) => void;
+  
+  // Lesson methods
+  setCurrentLesson: (lesson: EnhancedLesson) => void;
+  setLessonProgress: (progress: LessonStudyProgress) => void;
+  updateLessonProgress: (updates: Partial<LessonStudyProgress>) => void;
+  setActiveSession: (sessionId: string | null) => void;
+  startLessonStudy: (lessonId: string, userId?: string) => Promise<void>;
+  
+  // UI methods
   togglePinyin: () => void;
   toggleDefinitions: () => void;
   toggleToneMarks: () => void;
@@ -207,6 +259,51 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     dispatch({ type: 'SET_CURRENT_FLASHCARDS', payload: flashcards });
   };
 
+  // Lesson methods
+  const setCurrentLesson = useCallback((lesson: EnhancedLesson) => {
+    dispatch({ type: 'SET_CURRENT_LESSON', payload: lesson });
+  }, []);
+
+  const setLessonProgress = useCallback((progress: LessonStudyProgress) => {
+    dispatch({ type: 'SET_LESSON_PROGRESS', payload: progress });
+  }, []);
+
+  const updateLessonProgress = useCallback((updates: Partial<LessonStudyProgress>) => {
+    dispatch({ type: 'UPDATE_LESSON_PROGRESS', payload: updates });
+  }, []);
+
+  const setActiveSession = useCallback((sessionId: string | null) => {
+    dispatch({ type: 'SET_ACTIVE_SESSION', payload: sessionId });
+  }, []);
+
+  const startLessonStudy = useCallback(async (lessonId: string, userId?: string) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
+
+      // Load lesson
+      const lesson = await enhancedLessonService.loadLessonForStudy(lessonId);
+      if (!lesson) {
+        throw new Error(`Lesson ${lessonId} not found`);
+      }
+
+      // Start study session
+      const progress = await enhancedLessonService.startLessonStudy(lessonId, userId);
+      if (!progress) {
+        throw new Error('Failed to initialize lesson progress');
+      }
+
+      // Update session state
+      dispatch({ type: 'SET_CURRENT_LESSON', payload: lesson });
+      dispatch({ type: 'SET_LESSON_PROGRESS', payload: progress });
+      dispatch({ type: 'SET_ACTIVE_SESSION', payload: `session-${Date.now()}-${lessonId}` });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to start lesson study' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
   const togglePinyin = () => {
     dispatch({ type: 'TOGGLE_PINYIN' });
   };
@@ -245,6 +342,11 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     setCurrentAnnotation,
     setCurrentQuiz,
     setCurrentFlashcards,
+    setCurrentLesson,
+    setLessonProgress,
+    updateLessonProgress,
+    setActiveSession,
+    startLessonStudy,
     togglePinyin,
     toggleDefinitions,
     toggleToneMarks,
@@ -253,7 +355,14 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     setLoading,
     setError,
     resetSession,
-  }), [state]);
+  }), [
+    state, 
+    setCurrentLesson, 
+    setLessonProgress, 
+    updateLessonProgress, 
+    setActiveSession, 
+    startLessonStudy
+  ]);
 
   return (
     <SessionContext.Provider value={contextValue}>

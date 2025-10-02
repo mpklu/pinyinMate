@@ -78,6 +78,7 @@ export const FlashcardPageRoute = () => {
 
 /**
  * Route wrapper for QuizPage that handles data loading
+ * Note: Quiz generation is handled by libraryService.ts with Chinese↔Pinyin questions
  */
 export const QuizPageRoute = () => {
   const { lessonId } = useParams();
@@ -90,12 +91,22 @@ export const QuizPageRoute = () => {
       
       try {
         if (lessonId) {
-          // In a real implementation, load quiz data here
-          // const lesson = await lessonLibraryService.getLessonById(lessonId);
-          // const quiz = await quizService.generateQuiz(lesson);
+          console.log('🎯 QuizPageRoute: Loading quiz for lesson:', lessonId);
           
-          // For now, set default quiz as placeholder
-          setQuiz(DEFAULT_QUIZ);
+          // The main quiz generation is handled by libraryService.ts
+          // This route just provides the default quiz structure
+          // Real quiz data comes from the libraryService when the app loads lessons
+          
+          setQuiz({
+            ...DEFAULT_QUIZ,
+            id: `quiz-${lessonId}`,
+            sourceAnnotationId: lessonId,
+            metadata: {
+              ...DEFAULT_QUIZ.metadata,
+              estimatedTime: 5, // 5 minutes
+              totalPoints: 100
+            }
+          });
         }
       } catch (error) {
         console.error('Failed to load quiz data:', error);
@@ -107,9 +118,7 @@ export const QuizPageRoute = () => {
     };
 
     loadQuizData();
-  }, [lessonId]);
-
-  if (loading) {
+  }, [lessonId]);  if (loading) {
     return (
       <Box 
         display="flex" 

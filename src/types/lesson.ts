@@ -3,6 +3,7 @@
 
 import type { LessonFlashcard } from './enhancedFlashcard';
 import type { LessonQuizQuestion } from './enhancedQuiz';
+import type { DifficultyLevel } from './common';
 
 // Base vocabulary entry (should be defined in common.ts or imported from existing types)
 export interface VocabularyEntry {
@@ -21,15 +22,20 @@ export interface Lesson {
   title: string;                // Display title
   description: string;          // Lesson description
   content: string;              // Chinese text content
-  metadata: LessonMetadata;     // Lesson metadata
-  vocabulary?: VocabularyEntry[]; // Optional vocabulary list
+  metadata: LessonMetadata;     // Lesson metadata (includes vocabulary)
+  audio?: AudioData;            // Optional audio data
 }
 
 export interface LessonMetadata {
-  category: string;             // e.g., "beginner", "intermediate"
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: number;        // Minutes to complete
+  difficulty: DifficultyLevel;
   tags: string[];              // Searchable tags
+  characterCount: number;      // Number of Chinese characters in content
+  source: string;              // Content source attribution (publisher, URL, etc.)
+  book: string | null;         // Textbook reference if applicable
+  vocabulary: VocabularyEntry[]; // Vocabulary entries for the lesson
+  grammarPoints: string[];     // Key grammar concepts covered
+  culturalNotes: string[];     // Cultural context information
+  estimatedTime: number;       // Minutes to complete
   createdAt: Date;             // Creation timestamp
   updatedAt: Date;             // Last update timestamp
 }
@@ -55,6 +61,19 @@ export interface TextSegment {
   vocabulary?: VocabularyEntry[]; // Related vocabulary
   startIndex: number;          // Position in original text
   endIndex: number;            // End position in original text
+}
+
+// Audio data types
+export interface AudioData {
+  url: string;                 // Audio file URL or path
+  segments: AudioSegment[];    // Timed audio segments
+  duration: number;           // Total audio duration in seconds
+}
+
+export interface AudioSegment {
+  start: number;              // Start time in seconds
+  end: number;                // End time in seconds
+  text: string;               // Text corresponding to this audio segment
 }
 
 // Library management types
@@ -128,4 +147,116 @@ export interface LessonLoadOptions {
   includePinyin?: boolean;     // Add pinyin annotations
   segmentText?: boolean;       // Perform text segmentation
   cacheResult?: boolean;       // Cache the result
+}
+
+// Enhanced lesson interfaces for Interactive Lesson Learning Experience
+
+/**
+ * Enhanced lesson entity with processing and study capabilities
+ * Extends existing Lesson interface while maintaining backward compatibility
+ */
+export interface EnhancedLesson extends Lesson {
+  // Enhanced processing results
+  processedContent?: ProcessedLessonContent;
+  studyProgress?: LessonStudyProgress;
+  studyMaterials?: LessonStudyMaterials;
+}
+
+/**
+ * Lesson content enhanced with segmentation, pinyin, and audio preparation
+ */
+export interface ProcessedLessonContent {
+  segments: TextSegmentWithAudio[];
+  vocabularyMap: Map<string, VocabularyEntryWithPinyin>;
+  totalSegments: number;
+  processingTimestamp: Date;
+  pinyinGenerated: boolean;
+  audioReady: boolean;
+}
+
+/**
+ * Individual text segment with pinyin and audio capabilities
+ * Enhanced from existing TextSegment interface
+ */
+export interface TextSegmentWithAudio extends TextSegment {
+  segmentType: 'sentence' | 'vocabulary' | 'punctuation';
+  
+  // Audio integration
+  audioId?: string;
+  audioReady: boolean;
+  audioError?: string;
+  
+  // Vocabulary highlighting
+  vocabularyWords: VocabularyReference[];
+  clickable: boolean;
+}
+
+/**
+ * Enhanced vocabulary entry with pinyin and study metadata
+ */
+export interface VocabularyEntryWithPinyin extends VocabularyEntry {
+  // Enhanced fields
+  pinyin: string;
+  difficulty?: DifficultyLevel;
+  frequency: number; // frequency in lesson content
+  
+  // Study integration
+  studyCount: number;
+  lastStudied?: Date;
+  masteryLevel: number; // 0-100
+}
+
+/**
+ * Track user progress through lesson study session
+ */
+export interface LessonStudyProgress {
+  lessonId: string;
+  userId?: string; // Optional for anonymous users
+  
+  // Progress tracking
+  status: 'not-started' | 'in-progress' | 'completed';
+  startedAt?: Date;
+  completedAt?: Date;
+  timeSpent: number; // seconds
+  
+  // Content progress
+  segmentsViewed: Set<string>;
+  vocabularyStudied: Set<string>;
+  audioPlayed: Set<string>;
+  
+  // Study session data
+  sessionCount: number;
+  lastSessionAt: Date;
+}
+
+/**
+ * Generated study materials (flashcards and quizzes) from lesson content
+ */
+export interface LessonStudyMaterials {
+  lessonId: string;
+  generatedAt: Date;
+  
+  // Flashcard generation
+  flashcards?: LessonFlashcard[];
+  flashcardCount: number;
+  
+  // Quiz generation  
+  quizzes?: LessonQuizQuestion[];
+  quizCount: number;
+  
+  // Generation metadata
+  vocabularyFlashcards: number;
+  sentenceFlashcards: number;
+  multipleChoiceQuiz: number;
+  fillInBlankQuiz: number;
+}
+
+/**
+ * Vocabulary reference within text segments
+ */
+export interface VocabularyReference {
+  word: string;
+  startIndex: number;
+  endIndex: number;
+  difficulty?: DifficultyLevel;
 }

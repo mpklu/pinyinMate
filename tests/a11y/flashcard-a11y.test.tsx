@@ -21,7 +21,7 @@ expect.extend(toHaveNoViolations);
 
 // Mock audio service
 vi.mock('../../src/services/audioService', () => ({
-  synthesizeAudio: vi.fn().mockResolvedValue({
+  synthesize: vi.fn().mockResolvedValue({
     success: true,
     data: { audioUrl: 'mock-audio.mp3' }
   })
