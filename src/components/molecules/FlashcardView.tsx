@@ -277,84 +277,34 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
 
   // Helper function to calculate responsive font sizes for Chinese text
   const getChineseFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling
+    // clamp(min, preferred, max) adjusts smoothly based on viewport
     const sizeMap = {
-      small: {
-        xs: '1.25rem',
-        sm: '1.5rem',
-        md: '1.75rem',
-        lg: '2rem',
-        xl: '2.25rem',
-      },
-      medium: {
-        xs: '1.5rem',
-        sm: '1.875rem',
-        md: '2.25rem',
-        lg: '2.5rem',
-        xl: '2.875rem',
-      },
-      large: {
-        xs: '1.75rem',
-        sm: '2.25rem',
-        md: '2.75rem',
-        lg: '3.25rem',
-        xl: '3.75rem',
-      },
+      small: 'clamp(1.25rem, 3.5vw, 2.25rem)',     // Fluid from 1.25rem to 2.25rem
+      medium: 'clamp(1.5rem, 4.5vw, 2.875rem)',    // Fluid from 1.5rem to 2.875rem  
+      large: 'clamp(1.75rem, 5.5vw, 3.75rem)',     // Fluid from 1.75rem to 3.75rem
     };
     return sizeMap[size] || sizeMap.medium;
   };
 
   // Helper function to calculate responsive font sizes for pinyin text
   const getPinyinFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling (smaller than Chinese text)
     const sizeMap = {
-      small: {
-        xs: '0.75rem',
-        sm: '0.875rem',
-        md: '1rem',
-        lg: '1.125rem',
-        xl: '1.25rem',
-      },
-      medium: {
-        xs: '0.875rem',
-        sm: '1rem',
-        md: '1.25rem',
-        lg: '1.375rem',
-        xl: '1.5rem',
-      },
-      large: {
-        xs: '1rem',
-        sm: '1.25rem',
-        md: '1.5rem',
-        lg: '1.75rem',
-        xl: '2rem',
-      },
+      small: 'clamp(0.75rem, 2vw, 1.25rem)',       // Fluid from 0.75rem to 1.25rem
+      medium: 'clamp(0.875rem, 2.5vw, 1.5rem)',    // Fluid from 0.875rem to 1.5rem
+      large: 'clamp(1rem, 3vw, 2rem)',             // Fluid from 1rem to 2rem
     };
     return sizeMap[size] || sizeMap.medium;
   };
 
   // Helper function to calculate responsive font sizes for definition text
   const getDefinitionFontSizes = () => {
+    // Use CSS clamp() for fluid responsive scaling (between pinyin and Chinese sizes)
     const sizeMap = {
-      small: {
-        xs: '0.875rem',
-        sm: '1rem',
-        md: '1.125rem',
-        lg: '1.25rem',
-        xl: '1.375rem',
-      },
-      medium: {
-        xs: '1rem',
-        sm: '1.125rem',
-        md: '1.25rem',
-        lg: '1.375rem',
-        xl: '1.5rem',
-      },
-      large: {
-        xs: '1.125rem',
-        sm: '1.25rem',
-        md: '1.375rem',
-        lg: '1.5rem',
-        xl: '1.625rem',
-      },
+      small: 'clamp(0.875rem, 2.2vw, 1.375rem)',   // Fluid from 0.875rem to 1.375rem
+      medium: 'clamp(1rem, 2.7vw, 1.5rem)',        // Fluid from 1rem to 1.5rem
+      large: 'clamp(1.125rem, 3.2vw, 1.625rem)',   // Fluid from 1.125rem to 1.625rem
     };
     return sizeMap[size] || sizeMap.medium;
   };
