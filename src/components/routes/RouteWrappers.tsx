@@ -9,7 +9,9 @@ import { CircularProgress, Box } from '@mui/material';
 import { FlashcardPage } from '../templates/FlashcardPage';
 import { QuizPage } from '../templates/QuizPage';
 import { performanceMonitor } from '../../utils/performanceMonitor';
+import { libraryService } from '../../services/libraryService';
 import type { TextSegment, Quiz } from '../../types';
+import type { LessonQuizQuestion } from '../../types/enhancedQuiz';
 
 // Default empty data for components
 const DEFAULT_SEGMENTS: TextSegment[] = [];
@@ -93,20 +95,36 @@ export const QuizPageRoute = () => {
         if (lessonId) {
           console.log('🎯 QuizPageRoute: Loading quiz for lesson:', lessonId);
           
-          // The main quiz generation is handled by libraryService.ts
-          // This route just provides the default quiz structure
-          // Real quiz data comes from the libraryService when the app loads lessons
+          // Load lesson data and generate quiz questions using libraryService
+          const preparedLesson = await libraryService.prepareLessonForLearning(lessonId, {
+            includeQuizzes: true,
+            includeFlashcards: false,
+            cacheResult: true
+          });
           
-          setQuiz({
-            ...DEFAULT_QUIZ,
+          // Convert LessonQuizQuestion[] to Quiz format
+          const convertedQuiz: Quiz = {
             id: `quiz-${lessonId}`,
             sourceAnnotationId: lessonId,
+            questions: preparedLesson.quizQuestions.map((lessonQuestion: LessonQuizQuestion) => ({
+              id: lessonQuestion.id,
+              type: 'multiple-choice',
+              prompt: lessonQuestion.question,
+              options: lessonQuestion.options || [],
+              correctAnswer: lessonQuestion.correctAnswer,
+              explanation: `Question about: ${lessonQuestion.metadata.sourceWord || 'vocabulary'}`,
+              points: 10
+            })),
+            type: 'auto-generated',
+            createdAt: new Date(),
             metadata: {
-              ...DEFAULT_QUIZ.metadata,
-              estimatedTime: 5, // 5 minutes
-              totalPoints: 100
+              estimatedTime: Math.ceil(preparedLesson.quizQuestions.length * 0.5), // 30 seconds per question
+              totalPoints: preparedLesson.quizQuestions.length * 10
             }
-          });
+          };
+          
+          console.log('🎯 Generated quiz with', convertedQuiz.questions.length, 'questions');
+          setQuiz(convertedQuiz);
         }
       } catch (error) {
         console.error('Failed to load quiz data:', error);

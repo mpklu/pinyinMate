@@ -94,6 +94,8 @@ export interface QuizContainerProps {
   onQuizComplete?: (results: QuizProgress) => void;
   /** Callback on question answer */
   onQuestionAnswer?: (questionId: string, correct: boolean, timeSpent: number) => void;
+  /** Callback when question index changes */
+  onQuestionChange?: (currentIndex: number, totalQuestions: number) => void;
 }
 
 export const QuizContainer: React.FC<QuizContainerProps> = ({
@@ -104,6 +106,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
   className,
   onQuizComplete,
   onQuestionAnswer,
+  onQuestionChange,
 }) => {
   // State for quiz generation
   const [quiz, setQuiz] = useState<Quiz | null>(initialQuiz || null);
@@ -163,6 +166,13 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
   const [isCompleted, setIsCompleted] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
 
+  // Notify parent when quiz becomes available
+  useEffect(() => {
+    if (quiz && quiz.questions.length > 0) {
+      onQuestionChange?.(currentQuestionIndex, quiz.questions.length);
+    }
+  }, [quiz, currentQuestionIndex, onQuestionChange]);
+
   // Handle answer submission
   const handleAnswer = useCallback((answer: string | string[]) => {
     if (!quiz || currentQuestionIndex >= quiz.questions.length) return;
@@ -204,6 +214,8 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
     } else {
       setCurrentQuestionIndex(nextIndex);
       setQuestionStartTime(Date.now());
+      // Notify parent of question progression
+      onQuestionChange?.(nextIndex, quiz.questions.length);
     }
   }, [
     quiz,
@@ -212,6 +224,7 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
     answers,
     onQuestionAnswer,
     onQuizComplete,
+    onQuestionChange,
   ]);
 
   // Handle restart quiz
@@ -220,7 +233,11 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({
     setAnswers(new Map());
     setIsCompleted(false);
     setQuestionStartTime(Date.now());
-  }, []);
+    // Notify parent of reset to first question
+    if (quiz) {
+      onQuestionChange?.(0, quiz.questions.length);
+    }
+  }, [quiz, onQuestionChange]);
 
   // Calculate progress
   const progressValue = isCompleted || !quiz

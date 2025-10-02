@@ -117,6 +117,17 @@ export const QuizPage: React.FC<QuizPageProps> = ({
     onQuizComplete?.(results.correctAnswers, results.totalQuestions);
   }, [onQuizComplete]);
 
+  const handleQuestionChange = useCallback((
+    currentIndex: number, 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _totalQuestions: number
+  ) => {
+    setQuizState(prev => ({
+      ...prev,
+      currentIndex,
+    }));
+  }, []);
+
   const handleQuizRestart = useCallback(() => {
     setQuizState({
       currentIndex: 0,
@@ -231,6 +242,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({
           showProgress={false} // We handle progress at page level
           onQuestionAnswer={handleQuizAnswer}
           onQuizComplete={handleQuizComplete}
+          onQuestionChange={handleQuestionChange}
         />
       </Box>
     </Box>
