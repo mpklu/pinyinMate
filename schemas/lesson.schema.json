@@ -131,31 +131,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "audio": {
-      "type": "object",
-      "required": ["url", "segments", "duration"],
-      "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "Audio file URL or path"
-        },
-        "segments": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/audioSegment"
-          },
-          "description": "Timed audio segments"
-        },
-        "duration": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Total audio duration in seconds"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Optional audio data"
     }
   },
   "additionalProperties": false,
@@ -175,29 +150,6 @@
           "minLength": 1,
           "maxLength": 200,
           "description": "English definition or translation"
-        }
-      },
-      "additionalProperties": false
-    },
-    "audioSegment": {
-      "type": "object",
-      "required": ["start", "end", "text"],
-      "properties": {
-        "start": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Start time in seconds"
-        },
-        "end": {
-          "type": "number",
-          "minimum": 0,
-          "description": "End time in seconds"
-        },
-        "text": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 200,
-          "description": "Text corresponding to this audio segment"
         }
       },
       "additionalProperties": false

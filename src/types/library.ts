@@ -146,18 +146,6 @@ export interface LessonVocabulary {
   partOfSpeech?: string;
 }
 
-export interface AudioSegment {
-  start: number; // seconds
-  end: number; // seconds
-  text: string;
-}
-
-export interface LessonAudio {
-  url: string;
-  segments?: AudioSegment[];
-  duration?: number; // seconds
-}
-
 export interface LessonMetadata {
   difficulty: DifficultyLevel;
   tags: string[];
@@ -178,7 +166,6 @@ export interface LessonContent {
   description?: string;
   content: string; // Chinese text
   metadata: LessonMetadata;
-  audio?: LessonAudio;
 }
 
 export interface LessonSource {

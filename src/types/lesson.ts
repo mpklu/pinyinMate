@@ -23,7 +23,6 @@ export interface Lesson {
   description: string;          // Lesson description
   content: string;              // Chinese text content
   metadata: LessonMetadata;     // Lesson metadata (includes vocabulary)
-  audio?: AudioData;            // Optional audio data
 }
 
 export interface LessonMetadata {
@@ -61,19 +60,6 @@ export interface TextSegment {
   vocabulary?: VocabularyEntry[]; // Related vocabulary
   startIndex: number;          // Position in original text
   endIndex: number;            // End position in original text
-}
-
-// Audio data types
-export interface AudioData {
-  url: string;                 // Audio file URL or path
-  segments: AudioSegment[];    // Timed audio segments
-  duration: number;           // Total audio duration in seconds
-}
-
-export interface AudioSegment {
-  start: number;              // Start time in seconds
-  end: number;                // End time in seconds
-  text: string;               // Text corresponding to this audio segment
 }
 
 // Library management types

@@ -67,12 +67,7 @@ export function validateLesson(lesson: any): ValidationResult {
     warnings.push(...metadataValidation.warnings.map(w => ({ ...w, field: `metadata.${w.field}` })));
   }
 
-  // Optional audio validation
-  if (lesson.audio) {
-    const audioValidation = validateAudioData(lesson.audio);
-    errors.push(...audioValidation.errors.map(e => ({ ...e, field: `audio.${e.field}` })));
-    warnings.push(...audioValidation.warnings.map(w => ({ ...w, field: `audio.${w.field}` })));
-  }
+
 
   // Cross-field validations
   if (lesson.content && lesson.metadata?.characterCount) {
@@ -229,48 +224,7 @@ export function validateVocabularyEntry(entry: any): ValidationResult {
   return { valid: errors.length === 0, errors, warnings };
 }
 
-/**
- * Validate audio data
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateAudioData(audio: any): ValidationResult {
-  const errors: ValidationError[] = [];
-  const warnings: ValidationWarning[] = [];
 
-  if (!audio.url) {
-    errors.push({ field: 'url', message: 'Audio URL is required' });
-  } else if (typeof audio.url !== 'string') {
-    errors.push({ field: 'url', message: 'Audio URL must be a string', value: audio.url });
-  }
-
-  if (!audio.segments) {
-    errors.push({ field: 'segments', message: 'Audio segments are required' });
-  } else if (!Array.isArray(audio.segments)) {
-    errors.push({ field: 'segments', message: 'Audio segments must be an array', value: audio.segments });
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    audio.segments.forEach((segment: any, index: number) => {
-      if (typeof segment.start !== 'number' || segment.start < 0) {
-        errors.push({ field: `segments[${index}].start`, message: 'Start time must be a non-negative number', value: segment.start });
-      }
-      if (typeof segment.end !== 'number' || segment.end < 0) {
-        errors.push({ field: `segments[${index}].end`, message: 'End time must be a non-negative number', value: segment.end });
-      }
-      if (segment.start >= segment.end) {
-        errors.push({ field: `segments[${index}]`, message: 'Start time must be less than end time' });
-      }
-      if (!segment.text || typeof segment.text !== 'string') {
-        errors.push({ field: `segments[${index}].text`, message: 'Segment text is required and must be a string', value: segment.text });
-      }
-    });
-  }
-
-  if (typeof audio.duration !== 'number' || audio.duration < 0) {
-    errors.push({ field: 'duration', message: 'Duration must be a non-negative number', value: audio.duration });
-  }
-
-  return { valid: errors.length === 0, errors, warnings };
-}
 
 /**
  * Count Chinese characters in text

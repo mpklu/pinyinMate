@@ -18,8 +18,7 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
   "title": "string", 
   "description": "string",
   "content": "string",
-  "metadata": "LessonMetadata",
-  "audio": "AudioData (optional)"
+  "metadata": "LessonMetadata"
 }
 ```
 
@@ -52,25 +51,7 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
 
 **Note**: `pinyin` and `partOfSpeech` are generated at runtime using the pinyin-pro library and should not be included in the static lesson data.
 
-### AudioData Structure (Optional)
 
-```json
-{
-  "url": "string",
-  "segments": ["AudioSegment"],
-  "duration": "number"
-}
-```
-
-### AudioSegment Structure
-
-```json
-{
-  "start": "number",
-  "end": "number", 
-  "text": "string"
-}
-```
 
 ## Field Specifications
 
@@ -100,11 +81,7 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
 | `createdAt` | string | Creation timestamp | ISO 8601 format |
 | `updatedAt` | string | Last modification timestamp | ISO 8601 format |
 
-### Optional Fields
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `audio` | object | Audio file and timing data | See AudioData spec |
 
 ## Example Lesson
 
@@ -195,7 +172,6 @@ interface Lesson {
   description: string;
   content: string;
   metadata: LessonMetadata;
-  audio?: AudioData;
 }
 
 interface LessonMetadata {
@@ -215,18 +191,6 @@ interface LessonMetadata {
 interface VocabularyEntry {
   word: string;
   definition: string;
-}
-
-interface AudioData {
-  url: string;
-  segments: AudioSegment[];
-  duration: number;
-}
-
-interface AudioSegment {
-  start: number;
-  end: number;
-  text: string;
 }
 ```
 
