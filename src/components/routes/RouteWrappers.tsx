@@ -12,6 +12,9 @@ import { HomePage } from '../templates/HomePage';
 import { AnnotationPage } from '../templates/AnnotationPage';
 import { performanceMonitor } from '../../utils/performanceMonitor';
 import { libraryService } from '../../services/libraryService';
+import { librarySourceService } from '../../services/librarySourceService';
+import { segmentText } from '../../services/textSegmentationService';
+import { pinyinService } from '../../services/pinyinService';
 import type { TextSegment, Quiz } from '../../types';
 import type { LessonQuizQuestion } from '../../types/enhancedQuiz';
 
@@ -43,20 +46,77 @@ export const FlashcardPageRoute = () => {
       
       try {
         if (lessonId) {
-          // In a real implementation, load lesson data here
-          // const lesson = await lessonLibraryService.getLessonById(lessonId);
-          // const segments = await textSegmentationService.segmentText(lesson.content);
-          
-          // For now, set empty segments as placeholder
-          setSegments(DEFAULT_SEGMENTS);
+          // Load lesson from source - try local first
+          try {
+            const lesson = await librarySourceService.loadLesson('local-custom', lessonId);
+            
+            // Segment the lesson content
+            const textSegments = await segmentText(lesson.content);
+            
+            // Create TextSegment objects with pinyin
+            const segments: TextSegment[] = await Promise.all(
+              textSegments.map(async (text, index) => {
+                const pinyin = await pinyinService.generateBasic(text);
+                const toneMarks = await pinyinService.generateToneMarks(text);
+                return {
+                  id: `seg_${index}`,
+                  text: text,
+                  pinyin: pinyin,
+                  toneMarks: toneMarks,
+                  definition: '', // Will be empty for now
+                  position: { start: 0, end: text.length } // Simplified position
+                };
+              })
+            );
+            
+            setSegments(segments);
+          } catch (lessonError) {
+            console.warn(`Failed to load lesson ${lessonId}, using sample data:`, lessonError);
+            setSegments(await createSampleSegments());
+          }
+        } else {
+          // No lesson specified, provide sample segments
+          setSegments(await createSampleSegments());
         }
       } catch (error) {
         console.error('Failed to load flashcard data:', error);
-        setSegments(DEFAULT_SEGMENTS);
+        setSegments(await createSampleSegments());
       } finally {
         setLoading(false);
         performanceMonitor.endTiming('flashcard-route-load');
       }
+    };
+
+    // Helper function to create sample segments
+    const createSampleSegments = async (): Promise<TextSegment[]> => {
+      const sampleText = "你好！我叫李明。很高兴认识你。你叫什么名字？";
+      const textSegments = await segmentText(sampleText);
+      
+      return Promise.all(
+        textSegments.map(async (text, index) => {
+          const pinyin = await pinyinService.generateBasic(text);
+          const toneMarks = await pinyinService.generateToneMarks(text);
+          return {
+            id: `sample_${index}`,
+            text: text,
+            pinyin: pinyin,
+            toneMarks: toneMarks,
+            definition: getSampleDefinition(text),
+            position: { start: 0, end: text.length }
+          };
+        })
+      );
+    };
+
+    // Helper function for sample definitions
+    const getSampleDefinition = (text: string): string => {
+      const definitions: Record<string, string> = {
+        '你好！': 'Hello!',
+        '我叫李明。': 'My name is Li Ming.',
+        '很高兴认识你。': 'Nice to meet you.',
+        '你叫什么名字？': 'What is your name?'
+      };
+      return definitions[text] || 'Sample Chinese text';
     };
 
     loadFlashcardData();
