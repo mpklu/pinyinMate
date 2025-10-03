@@ -192,8 +192,6 @@ export const LessonPage: React.FC = () => {
               source: foundLesson.metadata?.source || 'Library',
               book: foundLesson.metadata?.book || null,
               vocabulary: foundLesson.metadata?.vocabulary || [],
-              grammarPoints: foundLesson.metadata?.grammarPoints || [],
-              culturalNotes: foundLesson.metadata?.culturalNotes || [],
               estimatedTime: foundLesson.metadata?.estimatedTime || 30,
               createdAt: foundLesson.metadata?.createdAt || new Date(),
               updatedAt: foundLesson.metadata?.updatedAt || new Date()
@@ -226,8 +224,6 @@ export const LessonPage: React.FC = () => {
                   partOfSpeech: 'pronoun'
                 }
               ],
-              grammarPoints: [],
-              culturalNotes: [],
               estimatedTime: 30,
               createdAt: new Date(),
               updatedAt: new Date()

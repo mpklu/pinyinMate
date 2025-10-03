@@ -32,8 +32,6 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
   "source": "string",
   "book": "string | null",
   "vocabulary": ["VocabularyEntry"],
-  "grammarPoints": ["string"],
-  "culturalNotes": ["string"],
   "estimatedTime": "number",
   "createdAt": "ISO 8601 datetime string",
   "updatedAt": "ISO 8601 datetime string"
@@ -75,8 +73,6 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
 | `source` | string | Content source attribution | Publisher, URL, or source identifier |
 | `book` | string\|null | Textbook reference if applicable | Book title or null |
 | `vocabulary` | array | List of vocabulary entries | Array of VocabularyEntry objects |
-| `grammarPoints` | array | Key grammar concepts | Array of strings |
-| `culturalNotes` | array | Cultural context information | Array of strings |
 | `estimatedTime` | number | Study time in minutes | Positive integer |
 | `createdAt` | string | Creation timestamp | ISO 8601 format |
 | `updatedAt` | string | Last modification timestamp | ISO 8601 format |
@@ -110,15 +106,6 @@ This document defines the standardized JSON schema for lessons in the PinyinMate
         "word": "有",
         "definition": "to have"
       }
-    ],
-    "grammarPoints": [
-      "Possession: 我有... (I have...)",
-      "Demonstrative: 这是... (This is...)", 
-      "Family relationships and terms"
-    ],
-    "culturalNotes": [
-      "Family is very important in Chinese culture",
-      "Specific terms exist for different family relationships"
     ],
     "estimatedTime": 20,
     "createdAt": "2025-09-29T12:00:00Z",
@@ -181,8 +168,6 @@ interface LessonMetadata {
   source: string;
   book: string | null;
   vocabulary: VocabularyEntry[];
-  grammarPoints: string[];
-  culturalNotes: string[];
   estimatedTime: number;
   createdAt: string; // ISO 8601
   updatedAt: string;  // ISO 8601

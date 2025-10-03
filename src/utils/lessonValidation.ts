@@ -99,7 +99,7 @@ export function validateMetadata(metadata: any): ValidationResult {
   // Required fields
   const requiredFields = [
     'difficulty', 'tags', 'characterCount', 'source', 'book',
-    'vocabulary', 'grammarPoints', 'culturalNotes', 'estimatedTime',
+    'vocabulary', 'estimatedTime',
     'createdAt', 'updatedAt'
   ];
 
@@ -287,14 +287,6 @@ export function migrateLegacyLesson(legacyLesson: any): Lesson {
 
   if (!migrated.metadata.vocabulary) {
     migrated.metadata.vocabulary = legacyLesson.vocabulary || [];
-  }
-
-  if (!migrated.metadata.grammarPoints) {
-    migrated.metadata.grammarPoints = [];
-  }
-
-  if (!migrated.metadata.culturalNotes) {
-    migrated.metadata.culturalNotes = [];
   }
 
   if (!migrated.metadata.characterCount && migrated.content) {

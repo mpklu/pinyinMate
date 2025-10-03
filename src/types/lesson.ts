@@ -32,8 +32,6 @@ export interface LessonMetadata {
   source: string;              // Content source attribution (publisher, URL, etc.)
   book: string | null;         // Textbook reference if applicable
   vocabulary: VocabularyEntry[]; // Vocabulary entries for the lesson
-  grammarPoints: string[];     // Key grammar concepts covered
-  culturalNotes: string[];     // Cultural context information
   estimatedTime: number;       // Minutes to complete
   createdAt: Date;             // Creation timestamp
   updatedAt: Date;             // Last update timestamp

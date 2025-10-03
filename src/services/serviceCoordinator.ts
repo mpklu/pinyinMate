@@ -56,8 +56,6 @@ class ServiceCoordinatorImpl implements ServiceCoordinator {
           source: 'System',
           book: null,
           vocabulary: [],
-          grammarPoints: [],
-          culturalNotes: [],
           estimatedTime: 30,
           createdAt: new Date(),
           updatedAt: new Date()

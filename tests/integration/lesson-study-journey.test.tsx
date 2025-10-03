@@ -68,8 +68,6 @@ const mockLesson: EnhancedLesson = {
       { word: '名字', translation: 'name', partOfSpeech: 'noun' },
       { word: '什么', translation: 'what', partOfSpeech: 'pronoun' }
     ],
-    grammarPoints: ['introductions', 'question formation'],
-    culturalNotes: ['greeting customs'],
     estimatedTime: 15,
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01')

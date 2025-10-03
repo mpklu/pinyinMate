@@ -1,7 +1,8 @@
 /**
  * Runtime Manifest Builder Service
  * 
- * Generates library manifest from public/lessons/ directory at runtime
+ * Generates library manifest from pu                vocabulary: lessonData.metadata.vocabulary || [],
+                estimatedTime: lessonData.metadata.estimatedTime || 30,/lessons/ directory at runtime
  * to maintain single source of truth principle.
  */
 
@@ -80,8 +81,6 @@ export class ManifestBuilderService {
                 source: lessonData.metadata.source || "PinyinMate Sample Content",
                 book: lessonData.metadata.book || null,
                 vocabulary: lessonData.metadata.vocabulary || [],
-                grammarPoints: lessonData.metadata.grammarPoints || [],
-                culturalNotes: lessonData.metadata.culturalNotes || [],
                 estimatedTime: lessonRef.metadata.estimatedTime || 15,
                 createdAt: new Date(),
                 updatedAt: new Date()

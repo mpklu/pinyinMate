@@ -37,8 +37,6 @@ describe('Integration: Lesson Schema Validation', () => {
             { word: '我', translation: 'I/me', partOfSpeech: 'pronoun' },
             { word: '叫', translation: 'to be called', partOfSpeech: 'verb' }
           ],
-          grammarPoints: ['introductions', 'question formation'],
-          culturalNotes: ['greeting customs'],
           estimatedTime: 15,
           createdAt: new Date('2025-01-01'),
           updatedAt: new Date('2025-01-01')

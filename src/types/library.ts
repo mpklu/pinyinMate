@@ -151,8 +151,6 @@ export interface LessonMetadata {
   tags: string[];
   characterCount: number;
   vocabulary: LessonVocabulary[];
-  grammarPoints?: string[];
-  culturalNotes?: string[];
   estimatedTime: number; // minutes
   prerequisites?: string[];
   author?: string;
@@ -181,7 +179,7 @@ export interface LessonReference {
   title: string;
   description?: string;
   source: LessonSource;
-  metadata: Omit<LessonMetadata, 'vocabulary' | 'grammarPoints' | 'culturalNotes'>;
+  metadata: Omit<LessonMetadata, 'vocabulary'>;
 }
 
 export interface LessonCategory {

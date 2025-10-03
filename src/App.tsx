@@ -491,8 +491,6 @@ const LibraryPageWrapper = () => {
             source: 'Library',
             book: null,
             vocabulary: [],
-            grammarPoints: [],
-            culturalNotes: [],
             estimatedTime: 30,
             createdAt: item.createdAt,
             updatedAt: item.createdAt
@@ -512,8 +510,6 @@ const LibraryPageWrapper = () => {
           source: 'Library',
           book: null,
           vocabulary: [],
-          grammarPoints: [],
-          culturalNotes: [],
           estimatedTime: 30,
           createdAt: item.createdAt,
           updatedAt: item.createdAt

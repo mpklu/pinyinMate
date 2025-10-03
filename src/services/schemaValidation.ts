@@ -189,8 +189,6 @@ export class SchemaValidationService {
     this.validateRequiredField(metadataObj, 'characterCount', 'number', errors);
     this.validateRequiredField(metadataObj, 'source', 'string', errors);
     this.validateRequiredField(metadataObj, 'vocabulary', 'object', errors);
-    this.validateRequiredField(metadataObj, 'grammarPoints', 'object', errors);
-    this.validateRequiredField(metadataObj, 'culturalNotes', 'object', errors);
     this.validateRequiredField(metadataObj, 'estimatedTime', 'number', errors);
 
     // Validate difficulty level

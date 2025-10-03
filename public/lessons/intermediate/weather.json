@@ -87,19 +87,7 @@
         "definition": "clothes"
       }
     ],
-    "grammarPoints": [
-      "Weather descriptions: 天气很好 (the weather is nice)",
-      "Expressing possibility: 可能会... (might/may...)",
-      "Seasonal vocabulary and expressions",
-      "Imperatives: 记得... (remember to...)",
-      "Descriptive adjectives for weather conditions"
-    ],
-    "culturalNotes": [
-      "Chinese people often discuss weather as a conversation starter",
-      "Different regions of China have very different climates",
-      "Spring Festival (Chinese New Year) marks the beginning of spring"
-    ],
-    "estimatedTime": 30,
+    "estimatedTime": 25,
     "createdAt": "2025-09-29T12:00:00Z",
     "updatedAt": "2025-09-29T12:00:00Z"
   }
