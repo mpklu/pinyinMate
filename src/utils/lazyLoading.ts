@@ -7,20 +7,26 @@ import { lazy } from 'react';
 
 // Template components - lazy loaded for route-based code splitting
 export const HomePage = lazy(() => 
-  import('../components/templates/HomePage').then(module => ({ 
-    default: module.HomePage 
+  import('../components/routes/RouteWrappers').then(module => ({ 
+    default: module.HomePageRoute 
   }))
 );
 
 export const LibraryPage = lazy(() => 
-  import('../components/templates/LibraryPage').then(module => ({ 
-    default: module.LibraryPage 
+  import('../components/routes/LibrarySourcesPage').then(module => ({ 
+    default: module.LibrarySourcesPage 
+  }))
+);
+
+export const SourceLessonsPage = lazy(() => 
+  import('../components/routes/SourceLessonsPage').then(module => ({ 
+    default: module.SourceLessonsPage 
   }))
 );
 
 export const AnnotationPage = lazy(() => 
-  import('../components/templates/AnnotationPage').then(module => ({ 
-    default: module.AnnotationPage 
+  import('../components/routes/RouteWrappers').then(module => ({ 
+    default: module.AnnotationPageRoute 
   }))
 );
 
