@@ -8,6 +8,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { 
   HomePage, 
   LibraryPage, 
+  SourceLessonsPage,
   AnnotationPage, 
   FlashcardPage, 
   QuizPage,
@@ -64,7 +65,35 @@ export const router = createBrowserRouter([
         }
       },
       {
-        path: "annotation",
+        path: "library/:sourceId",
+        element: <SourceLessonsPage />,
+        loader: async () => {
+          // Preload library source service and lesson processing
+          await Promise.all([
+            preloadServices.library(),
+            preloadServices.textSegmentation(),
+            preloadServices.pinyin(),
+          ]);
+          return null;
+        }
+      },
+      {
+        path: "library/:sourceId/lesson/:lessonId",
+        element: <LessonPage />,
+        loader: async () => {
+          // Preload all enhanced lesson services for library lessons
+          await Promise.all([
+            preloadServices.library(),
+            preloadServices.textSegmentation(),
+            preloadServices.pinyin(),
+            preloadServices.audio(),
+            preloadServices.srs(),
+          ]);
+          return null;
+        }
+      },
+      {
+        path: "annotate",
         element: <AnnotationPage />,
         loader: async () => {
           // Preload text processing services

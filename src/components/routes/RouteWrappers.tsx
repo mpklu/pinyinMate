@@ -4,10 +4,12 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
 import { FlashcardPage } from '../templates/FlashcardPage';
 import { QuizPage } from '../templates/QuizPage';
+import { HomePage } from '../templates/HomePage';
+import { AnnotationPage } from '../templates/AnnotationPage';
 import { performanceMonitor } from '../../utils/performanceMonitor';
 import { libraryService } from '../../services/libraryService';
 import type { TextSegment, Quiz } from '../../types';
@@ -152,4 +154,52 @@ export const QuizPageRoute = () => {
   }
 
   return <QuizPage quiz={quiz} />;
+};
+
+/**
+ * Route wrapper for HomePage that provides navigation callbacks
+ */
+export const HomePageRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <HomePage
+      onStartAnnotation={() => navigate('/annotate')}
+      onStartQuiz={() => navigate('/quiz')}
+      onStartFlashcards={() => navigate('/flashcards')}
+      onViewLibrary={() => navigate('/library')}
+    />
+  );
+};
+
+/**
+ * Route wrapper for AnnotationPage that provides navigation callbacks
+ */
+export const AnnotationPageRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <AnnotationPage
+      onBack={() => navigate(-1)}
+      onHome={() => navigate('/')}
+      onAnnotationComplete={(result) => {
+        // Handle annotation completion - could navigate to results or home
+        console.log('Annotation completed:', result);
+        navigate('/');
+      }}
+      onSegmentsSelected={(segments) => {
+        // Handle segment selection - could navigate to flashcards or quiz
+        console.log('Segments selected:', segments);
+        navigate('/flashcards');
+      }}
+      onSave={(result) => {
+        // Handle save - show success message and stay on page
+        console.log('Annotation saved:', result);
+      }}
+      onShare={(result) => {
+        // Handle share - could open share dialog or copy to clipboard
+        console.log('Annotation shared:', result);
+      }}
+    />
+  );
 };

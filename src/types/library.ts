@@ -307,3 +307,82 @@ export const LIBRARY_CONSTANTS = {
     AUDIO_MAX_SIZE: 10 * 1024 * 1024, // 10MB
   },
 } as const;
+
+// Library Source System Types (for multi-source lesson management)
+export interface LibrarySource {
+  id: string;
+  name: string;
+  type: 'local' | 'remote';
+  description: string;
+  enabled: boolean;
+  priority: number;
+  metadata: SourceMetadata;
+  config: SourceConfig;
+}
+
+export interface SourceMetadata {
+  version: string;
+  lastUpdated: string;
+  totalLessons: number;
+  categories: string[];
+  supportedFeatures: string[];
+  organization?: string;
+  levelSystem?: string;
+}
+
+export interface SourceConfig {
+  // Local source config
+  manifestPath?: string;
+  
+  // Remote source config  
+  url?: string;
+  syncInterval?: number;
+  authentication?: {
+    type: 'none' | 'bearer' | 'apikey';
+    credentials?: Record<string, string>;
+  };
+}
+
+export interface SourceLessonEntry {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  lscsLevel?: string;
+  tags: string[];
+  characterCount: number;
+  estimatedTime: number;
+  createdAt: string;
+  updatedAt: string;
+  source: {
+    type: 'local' | 'remote';
+    path: string;
+  };
+}
+
+export interface LoadingState {
+  isLoading: boolean;
+  error?: string;
+  lastLoaded?: string;
+}
+
+export interface SourceLoadResult {
+  source: LibrarySource;
+  lessons: SourceLessonEntry[];
+  loadingState: LoadingState;
+}
+
+export interface PaginatedLessons {
+  lessons: SourceLessonEntry[];
+  totalCount: number;
+  hasMore: boolean;
+  nextPage?: number;
+}
+
+export interface SearchFilters {
+  query?: string;           // Search in title/description
+  difficulty?: string[];    // Filter by difficulty
+  lscsLevel?: string[];     // Filter by LSCS level  
+  tags?: string[];          // Filter by tags
+  estimatedTimeRange?: [number, number]; // Filter by time range
+}
