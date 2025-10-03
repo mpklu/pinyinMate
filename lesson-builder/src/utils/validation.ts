@@ -6,25 +6,7 @@
  */
 
 import type { Lesson } from '../types/lesson';
-
-// Validation result interface
-export interface ValidationResult {
-  valid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-}
-
-export interface ValidationError {
-  field: string;
-  message: string;
-  value?: unknown;
-}
-
-export interface ValidationWarning {
-  field: string;
-  message: string;
-  value?: unknown;
-}
+import type { ValidationResult, ValidationError, ValidationWarning } from '../types/builder';
 
 /**
  * Validate a complete lesson object
@@ -82,7 +64,7 @@ export function validateLesson(lesson: any): ValidationResult {
   }
 
   return {
-    valid: errors.length === 0,
+    isValid: errors.length === 0,
     errors,
     warnings
   };
@@ -189,7 +171,7 @@ export function validateMetadata(metadata: any): ValidationResult {
     });
   }
 
-  return { valid: errors.length === 0, errors, warnings };
+  return { isValid: errors.length === 0, errors, warnings };
 }
 
 /**
@@ -221,7 +203,7 @@ export function validateVocabularyEntry(entry: any): ValidationResult {
     warnings.push({ field: 'partOfSpeech', message: 'PartOfSpeech field is deprecated and will be ignored' });
   }
 
-  return { valid: errors.length === 0, errors, warnings };
+  return { isValid: errors.length === 0, errors, warnings };
 }
 
 

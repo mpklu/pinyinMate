@@ -163,7 +163,6 @@ const LessonForm = () => {
               </Typography>
               <JSONPreview
                 lesson={generateLesson()}
-                validation={validation}
               />
             </Paper>
           </Box>
