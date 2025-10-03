@@ -35,6 +35,10 @@ const JSONPreview = ({ lesson }: JSONPreviewProps) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   
+  // Debug: Check if lscsLevel is present in the lesson
+  console.log('JSONPreview lesson metadata:', lesson.metadata);
+  console.log('lscsLevel in lesson:', lesson.metadata.lscsLevel);
+  
   const lessonJsonString = JSON.stringify(lesson, null, 2);
   const manifestEntry = generateManifestEntry(lesson);
   const manifestJsonString = JSON.stringify(manifestEntry, null, 2);

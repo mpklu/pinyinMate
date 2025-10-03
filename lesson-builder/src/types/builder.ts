@@ -10,6 +10,7 @@ export interface LessonBuilderState {
   
   // Metadata
   difficulty: DifficultyLevel;
+  lscsLevel: string;
   tags: string[];
   source: string;
   book: string | null;

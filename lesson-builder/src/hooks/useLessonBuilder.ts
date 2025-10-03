@@ -10,6 +10,9 @@ import { validateLesson } from '../utils/validation';
 import { analyzeChineseText } from '../utils/textAnalysis';
 import { generateLessonJSON } from '../services/lessonGenerator';
 import { publishLessonToGitHub } from '../services/githubService';
+import type { LSCSLevel } from '../utils/lscsMapping';
+import { getDefaultLSCSLevel } from '../utils/lscsMapping';
+import { debugLessonState } from '../utils/debug';
 
 const initialState: LessonBuilderState = {
   id: '',
@@ -17,6 +20,7 @@ const initialState: LessonBuilderState = {
   description: '',
   content: '',
   difficulty: 'beginner' as DifficultyLevel,
+  lscsLevel: getDefaultLSCSLevel('beginner'),
   tags: [],
   source: '',
   book: null,
@@ -41,7 +45,16 @@ export const useLessonBuilder = () => {
     if (savedDraft) {
       try {
         const parsed = JSON.parse(savedDraft);
-        setState(prev => ({ ...prev, ...parsed, isProcessing: false }));
+        
+        // Ensure lscsLevel is set correctly based on difficulty
+        const correctedLscsLevel = parsed.lscsLevel || getDefaultLSCSLevel(parsed.difficulty || 'beginner');
+        
+        setState(prev => ({ 
+          ...prev, 
+          ...parsed, 
+          lscsLevel: correctedLscsLevel,
+          isProcessing: false 
+        }));
       } catch (error) {
         console.error('Failed to load draft:', error);
       }
@@ -128,7 +141,10 @@ export const useLessonBuilder = () => {
   }, [state.content]);
 
   const generateLesson = useCallback((): Lesson => {
-    return generateLessonJSON(state);
+    debugLessonState(state); // Debug current state
+    const lesson = generateLessonJSON(state);
+    console.log('Generated lesson metadata:', lesson.metadata);
+    return lesson;
   }, [state]);
 
   const exportLesson = useCallback((lesson: Lesson) => {
@@ -152,7 +168,7 @@ export const useLessonBuilder = () => {
     }));
 
     try {
-      await publishLessonToGitHub(lesson);
+      await publishLessonToGitHub(lesson, state.lscsLevel as LSCSLevel);
       setState(prev => ({
         ...prev,
         publishStatus: {
@@ -172,7 +188,7 @@ export const useLessonBuilder = () => {
       }));
       throw error;
     }
-  }, []);
+  }, [state.lscsLevel]); // Add lscsLevel as dependency to capture current value
 
   return {
     state,

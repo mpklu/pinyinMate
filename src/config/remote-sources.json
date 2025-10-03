@@ -1,11 +1,39 @@
 {
   "sources": [
     {
+      "id": "lscs-depot",
+      "name": "LSCS Chinese Lesson Depot",
+      "type": "remote",
+      "enabled": true,
+      "priority": 1,
+      "config": {
+        "id": "lscs-depot",
+        "name": "LSCS Chinese Lesson Depot",
+        "description": "Chinese lessons from Little Star Chinese School, organized by proficiency levels",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/gelileo/chinese-lesson-depot/main/manifest.json",
+        "lessons": [],
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2025-10-03T00:00:00.000Z",
+          "totalLessons": 0,
+          "categories": ["level1", "level2", "level3", "level4", "level5", "level6", "level7", "advanced"],
+          "supportedFeatures": ["flashcards", "quizzes", "pinyin", "vocabulary", "lscs-levels"],
+          "organization": "Little Star Chinese School (LSCS)",
+          "levelSystem": "LSCS 7-Level Progression"
+        },
+        "syncInterval": 30,
+        "authentication": {
+          "type": "none"
+        }
+      }
+    },
+    {
       "id": "github-hsk",
       "name": "GitHub HSK Lessons",
       "type": "remote",
       "enabled": true,
-      "priority": 1,
+      "priority": 2,
       "config": {
         "id": "github-hsk",
         "name": "GitHub HSK Lessons",
@@ -34,7 +62,7 @@
       "name": "ChinesePod Lessons",
       "type": "remote", 
       "enabled": false,
-      "priority": 2,
+      "priority": 3,
       "config": {
         "id": "chinese-pod",
         "name": "ChinesePod Lessons",

@@ -1,5 +1,7 @@
 import { Grid, TextField, FormControl, InputLabel, Select, MenuItem, Chip, Box } from '@mui/material';
 import type { LessonBuilderState, DifficultyLevel } from '../types';
+import LSCSLevelSelector from './LSCSLevelSelector';
+import { getDefaultLSCSLevel, type PinyinMateDifficulty } from '../utils/lscsMapping';
 
 interface MetadataFormProps {
   state: LessonBuilderState;
@@ -7,10 +9,21 @@ interface MetadataFormProps {
   onUpdateMetadata: (field: string, value: any) => void;
 }
 
-const MetadataForm = ({ state, onUpdateField, onUpdateMetadata }: MetadataFormProps) => {
+const MetadataForm = ({ state, onUpdateField }: MetadataFormProps) => {
   const handleTagsChange = (tagsString: string) => {
     const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     onUpdateField('tags', tags);
+  };
+
+  const handleDifficultyChange = (difficulty: DifficultyLevel) => {
+    onUpdateField('difficulty', difficulty);
+    // Update LSCS level to default for new difficulty
+    const defaultLSCSLevel = getDefaultLSCSLevel(difficulty as PinyinMateDifficulty);
+    onUpdateField('lscsLevel', defaultLSCSLevel);
+  };
+
+  const handleLSCSLevelChange = (lscsLevel: string) => {
+    onUpdateField('lscsLevel', lscsLevel);
   };
 
   return (
@@ -32,13 +45,21 @@ const MetadataForm = ({ state, onUpdateField, onUpdateMetadata }: MetadataFormPr
           <Select
             value={state.difficulty}
             label="Difficulty"
-            onChange={(e) => onUpdateField('difficulty', e.target.value as DifficultyLevel)}
+            onChange={(e) => handleDifficultyChange(e.target.value as DifficultyLevel)}
           >
             <MenuItem value="beginner">Beginner</MenuItem>
             <MenuItem value="intermediate">Intermediate</MenuItem>
             <MenuItem value="advanced">Advanced</MenuItem>
           </Select>
         </FormControl>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <LSCSLevelSelector
+          difficulty={state.difficulty as PinyinMateDifficulty}
+          selectedLevel={state.lscsLevel}
+          onChange={handleLSCSLevelChange}
+        />
       </Grid>
       
       <Grid item xs={12}>
@@ -104,8 +125,8 @@ const MetadataForm = ({ state, onUpdateField, onUpdateMetadata }: MetadataFormPr
           helperText="Comma-separated tags"
         />
         <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-          {state.tags.map((tag, index) => (
-            <Chip key={index} label={tag} size="small" />
+          {state.tags.map((tag) => (
+            <Chip key={tag} label={tag} size="small" />
           ))}
         </Box>
       </Grid>

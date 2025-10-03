@@ -10,6 +10,7 @@ export interface VocabularyEntry {
 // Lesson metadata structure
 export interface LessonMetadata {
   difficulty: DifficultyLevel;
+  lscsLevel?: string;          // LSCS level for remote publishing (optional for backward compatibility)
   tags: string[];              // Searchable tags
   characterCount: number;      // Number of Chinese characters in content
   source: string;              // Content source attribution (publisher, URL, etc.)
