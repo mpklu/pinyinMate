@@ -1,0 +1,17 @@
+{
+  "name": "lesson-builder",
+  "displayName": "PinyinMate Lesson Builder",  
+  "short_name": "Lesson Builder",
+  "description": "Create Chinese language lessons for PinyinMate",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#fafafa",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
