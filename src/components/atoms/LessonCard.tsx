@@ -77,7 +77,7 @@ export const LessonCard: React.FC<LessonCardProps> = ({
 
   const progressStatus = getProgressStatus(progress);
   const isCompleted = progress?.completed ?? false;
-  const vocabularyCount = lesson.vocabulary?.length ?? 0;
+  const vocabularyCount = lesson.metadata.vocabulary?.length ?? 0;
 
   return (
     <Card

@@ -12,10 +12,7 @@ export interface VocabularyEntry {
   partOfSpeech?: string;
 }
 
-export interface VocabularyEntryWithPinyin extends VocabularyEntry {
-  pinyin: string;
-  contextUsage?: string;       // Example usage in context
-}
+// VocabularyEntryWithPinyin is defined below with complete interface"
 
 export interface Lesson {
   id: string;                   // Unique within library (e.g., "greetings")
@@ -27,6 +24,7 @@ export interface Lesson {
 
 export interface LessonMetadata {
   difficulty: DifficultyLevel;
+  category?: string;           // Lesson category
   tags: string[];              // Searchable tags
   characterCount: number;      // Number of Chinese characters in content
   source: string;              // Content source attribution (publisher, URL, etc.)
@@ -182,12 +180,13 @@ export interface VocabularyEntryWithPinyin extends VocabularyEntry {
   // Enhanced fields
   pinyin: string;
   difficulty?: DifficultyLevel;
-  frequency: number; // frequency in lesson content
+  frequency?: number; // frequency in lesson content
+  contextUsage?: string;       // Example usage in context
   
   // Study integration
-  studyCount: number;
+  studyCount?: number;
   lastStudied?: Date;
-  masteryLevel: number; // 0-100
+  masteryLevel?: number; // 0-100
 }
 
 /**
