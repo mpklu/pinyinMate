@@ -116,6 +116,16 @@ export const router = createBrowserRouter([
         }
       },
       {
+        path: "library/:sourceId/flashcards/:lessonId",
+        element: <FlashcardPage />,
+        loader: async () => {
+          // Preload core services for flashcard experience
+          preloadServices.srs();
+          preloadServices.audio();
+          return null;
+        }
+      },
+      {
         path: "quiz/:lessonId?",
         element: <QuizPage />,
         loader: async () => {

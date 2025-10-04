@@ -538,7 +538,7 @@ export const LessonPage: React.FC = () => {
                   variant="outlined" 
                   size="small" 
                   startIcon={<FlashcardIcon />}
-                  onClick={() => navigate(`/flashcards/${lesson?.id}`)}
+                  onClick={() => navigate(`/library/${sourceId}/flashcards/${lesson?.id}`)}
                   fullWidth
                 >
                   Flashcards
@@ -574,8 +574,8 @@ export const LessonPage: React.FC = () => {
             message: 'Generating flashcards...',
             severity: 'info'
           });
-          // Navigate to flashcards page with lesson ID
-          navigate(`/flashcards/${lesson.id}`);
+          // Navigate to flashcards page with lesson ID and sourceId
+          navigate(`/library/${sourceId}/flashcards/${lesson.id}`);
         }}
       >
         <FlashcardIcon />

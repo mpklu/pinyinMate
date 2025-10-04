@@ -1,5 +1,21 @@
 /**
- * Route wrapper components that handle data loading and prop injection
+ * Route wrapper components that export const FlashcardPageRoute = () => {
+  const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId?: string }>();
+  const [segments, setSegments] = useState<TextSegment[]>(DEFAULT_SEGMENTS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFlashcardData = async () => {
+      performanceMonitor.startTiming('flashcard-route-load');
+      
+      try {
+        if (lessonId) {
+          // Determine which source to load from
+          const targetSourceId = sourceId || 'local-custom'; // Default to local if no sourceId
+          
+          // Load lesson from the specified source
+          try {
+            const lesson = await librarySourceService.loadLesson(targetSourceId, lessonId);ading and prop injection
  * Decouples routing from component props for better lazy loading
  */
 
@@ -36,7 +52,7 @@ const DEFAULT_QUIZ: Quiz = {
  * Route wrapper for FlashcardPage that handles data loading
  */
 export const FlashcardPageRoute = () => {
-  const { lessonId } = useParams();
+  const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId?: string }>();
   const [segments, setSegments] = useState<TextSegment[]>(DEFAULT_SEGMENTS);
   const [loading, setLoading] = useState(true);
 
@@ -46,9 +62,13 @@ export const FlashcardPageRoute = () => {
       
       try {
         if (lessonId) {
-          // Load lesson from source - try local first
+          // Determine which source to load from
+          const targetSourceId = sourceId || 'local-custom'; // Default to local if no sourceId
+          
+          // Load lesson from the specified source
           try {
-            const lesson = await librarySourceService.loadLesson('local-custom', lessonId);
+            console.log(`Loading lesson ${lessonId} from source ${targetSourceId}`);
+            const lesson = await librarySourceService.loadLesson(targetSourceId, lessonId);
             
             // Segment the lesson content
             const textSegments = await segmentText(lesson.content);
@@ -71,8 +91,44 @@ export const FlashcardPageRoute = () => {
             
             setSegments(segments);
           } catch (lessonError) {
-            console.warn(`Failed to load lesson ${lessonId}, using sample data:`, lessonError);
-            setSegments(await createSampleSegments());
+            console.warn(`Failed to load lesson ${lessonId} from source ${targetSourceId}, trying alternative approach:`, lessonError);
+            
+            // Fallback: try to load from libraryService which searches all sources
+            try {
+              const { libraryService } = await import('../../services/libraryService');
+              await libraryService.initialize();
+              const allLessons = await libraryService.getLessons();
+              const foundLesson = allLessons.find(lesson => lesson.id === lessonId);
+              
+              if (foundLesson) {
+                console.log(`Found lesson ${lessonId} in libraryService, generating flashcard segments`);
+                const textSegments = await segmentText(foundLesson.content);
+                
+                const segments: TextSegment[] = await Promise.all(
+                  textSegments.map(async (text, index) => {
+                    const pinyin = await pinyinService.generateBasic(text);
+                    const toneMarks = await pinyinService.generateToneMarks(text);
+                    return {
+                      id: `seg_${index}`,
+                      text: text,
+                      pinyin: pinyin,
+                      toneMarks: toneMarks,
+                      definition: '',
+                      position: { start: 0, end: text.length }
+                    };
+                  })
+                );
+                
+                console.log(`Successfully loaded lesson from libraryService: ${segments.length} segments`);
+                setSegments(segments);
+              } else {
+                console.warn(`Lesson ${lessonId} not found in any source, using sample data`);
+                setSegments(await createSampleSegments());
+              }
+            } catch (libraryError) {
+              console.error(`Failed to load lesson from libraryService:`, libraryError);
+              setSegments(await createSampleSegments());
+            }
           }
         } else {
           // No lesson specified, provide sample segments
@@ -120,7 +176,7 @@ export const FlashcardPageRoute = () => {
     };
 
     loadFlashcardData();
-  }, [lessonId]);
+  }, [lessonId, sourceId]);
 
   if (loading) {
     return (
