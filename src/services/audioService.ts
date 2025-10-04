@@ -63,11 +63,23 @@ export const synthesize = async (request: AudioSynthesizeRequest): Promise<Audio
       };
     }
 
-    // AudioService is not implemented for real audio synthesis yet
-    // Let the AudioButton handle Web Speech API directly to avoid double playback
+    // Check if Web Speech API is available
+    if (!isWebSpeechAvailable()) {
+      return {
+        success: false,
+        error: 'Web Speech API is not available in this browser',
+      };
+    }
+
+    // Return success with Web Speech indicator - let AudioButton handle the actual playback
+    // This avoids double playback while providing a working synthesis service
     return {
-      success: false,
-      error: 'AudioService synthesis not available - use Web Speech API fallback',
+      success: true,
+      data: {
+        audioUrl: 'web-speech-synthesis',
+        duration: 0, // Unknown duration for Web Speech
+        format: 'mp3', // Use mp3 as the format type for compatibility
+      },
     };
 
   } catch (error) {
@@ -96,6 +108,91 @@ const getChineseVoices = (): SpeechSynthesisVoice[] => {
     voice.lang.startsWith('cmn') ||
     voice.name.toLowerCase().includes('chinese')
   );
+};
+
+/**
+ * Directly plays audio using Web Speech API
+ * This is for direct playback without going through AudioButton component
+ */
+export const playTextDirectly = async (request: AudioSynthesizeRequest): Promise<AudioSynthesizeResponse> => {
+  try {
+    // Validate request
+    const validation = validateAudioRequest(request);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: validation.errors.join(', '),
+      };
+    }
+
+    // Check if Web Speech API is available
+    if (!isWebSpeechAvailable()) {
+      return {
+        success: false,
+        error: 'Web Speech API is not available in this browser',
+      };
+    }
+
+    // Use Web Speech API for direct playback
+    return new Promise((resolve) => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(request.text);
+        
+        // Try to find a Chinese voice
+        const voices = speechSynthesis.getVoices();
+        const chineseVoice = voices.find(voice => 
+          voice.lang.startsWith('zh') || 
+          voice.lang.startsWith('cmn') ||
+          voice.name.toLowerCase().includes('chinese')
+        );
+        
+        if (chineseVoice) {
+          utterance.voice = chineseVoice;
+          utterance.lang = chineseVoice.lang;
+        } else {
+          utterance.lang = 'zh-CN';
+        }
+        
+        utterance.rate = request.options?.speed || 0.8;
+        utterance.pitch = request.options?.pitch || 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => {
+          resolve({
+            success: true,
+            data: {
+              audioUrl: 'web-speech-direct-playback',
+              duration: 0, // Unknown duration for Web Speech
+              format: 'mp3', // Use mp3 as the format type for compatibility
+            },
+          });
+        };
+        
+        utterance.onerror = (event) => {
+          resolve({
+            success: false,
+            error: `Speech synthesis failed: ${event.error}`,
+          });
+        };
+        
+        speechSynthesis.speak(utterance);
+        
+      } catch (error) {
+        resolve({
+          success: false,
+          error: error instanceof Error ? error.message : 'Web Speech API error',
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Direct audio playback failed:', error);
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown audio synthesis error',
+    };
+  }
 };
 
 // Removed synthesizeWithWebSpeech to prevent double audio playback

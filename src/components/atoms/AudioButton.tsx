@@ -167,18 +167,25 @@ const useAudioPlayback = (
         const synthesizeResult = await audioService.synthesize(synthesizeRequest);
         
         if (synthesizeResult.success && synthesizeResult.data?.audioUrl) {
-          const audio = new Audio(synthesizeResult.data.audioUrl);
-          audioRef.current = audio;
-          
-          audio.addEventListener('loadstart', handleLoadStart);
-          audio.addEventListener('canplay', handleCanPlay);
-          audio.addEventListener('play', handlePlay);
-          audio.addEventListener('pause', handlePause);
-          audio.addEventListener('ended', handleEnd);
-          audio.addEventListener('error', handleError);
-          
-          await audio.play();
-          return;
+          // Check if this is a Web Speech synthesis indicator
+          if (synthesizeResult.data.audioUrl === 'web-speech-synthesis') {
+            // AudioService indicates Web Speech should be used, fall through to Web Speech fallback
+            console.log('AudioService recommends Web Speech API, using fallback');
+          } else {
+            // We have a real audio URL, use it
+            const audio = new Audio(synthesizeResult.data.audioUrl);
+            audioRef.current = audio;
+            
+            audio.addEventListener('loadstart', handleLoadStart);
+            audio.addEventListener('canplay', handleCanPlay);
+            audio.addEventListener('play', handlePlay);
+            audio.addEventListener('pause', handlePause);
+            audio.addEventListener('ended', handleEnd);
+            audio.addEventListener('error', handleError);
+            
+            await audio.play();
+            return;
+          }
         }
       } catch (audioServiceError) {
         console.warn('AudioService synthesis failed, falling back to Web Speech:', audioServiceError);
