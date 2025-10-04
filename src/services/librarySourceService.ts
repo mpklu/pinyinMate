@@ -7,6 +7,8 @@ import type {
   SearchFilters 
 } from '../types/library';
 import type { Lesson } from '../types/lesson';
+import remoteSourcesConfig from '../config/remote-sources.json';
+import localLessonsManifest from '../../public/lessons/manifest.json';
 
 /**
  * Service for managing both local and remote lesson sources
@@ -22,12 +24,14 @@ export class LibrarySourceService {
    */
   async initialize(): Promise<void> {
     try {
-      // Load remote sources configuration
-      const remoteSourcesResponse = await fetch('/src/config/remote-sources.json');
-      const remoteSourcesConfig = await remoteSourcesResponse.json();
+      console.log('Initializing library sources...');
+      // Use imported configuration instead of fetching to avoid routing issues
+      console.log('Loaded remote sources config:', remoteSourcesConfig);
       
       // Convert config format to LibrarySource format
       for (const sourceConfig of remoteSourcesConfig.sources) {
+        console.log('Processing source config:', sourceConfig);
+        console.log('sourceConfig.enabled value:', sourceConfig.enabled, 'type:', typeof sourceConfig.enabled);
         const librarySource: LibrarySource = {
           id: sourceConfig.id,
           name: sourceConfig.config.name,
@@ -52,11 +56,16 @@ export class LibrarySourceService {
           }
         };
         
+        console.log('Created library source:', librarySource);
         this.sources.set(sourceConfig.id, librarySource);
         this.loadingStates.set(sourceConfig.id, { isLoading: false });
       }
+      
+      console.log('Initialized sources count:', this.sources.size);
     } catch (error) {
       console.error('Failed to initialize library sources:', error);
+      // Re-throw so the UI can handle it properly
+      throw error;
     }
   }
 
@@ -64,9 +73,21 @@ export class LibrarySourceService {
    * Get all available sources
    */
   getSources(): LibrarySource[] {
-    return Array.from(this.sources.values())
-      .filter(source => source.enabled)
-      .sort((a, b) => a.priority - b.priority);
+    const allSources = Array.from(this.sources.values());
+    console.log('🔍 [getSources] Total sources in map:', allSources.length);
+    allSources.forEach((source, index) => {
+      console.log(`🔍 [getSources] Source ${index}:`, {
+        id: source.id,
+        name: source.name,
+        enabled: source.enabled,
+        type: source.type
+      });
+    });
+    
+    const enabledSources = allSources.filter(source => source.enabled);
+    console.log('✅ [getSources] Enabled sources count:', enabledSources.length);
+    
+    return enabledSources.sort((a, b) => a.priority - b.priority);
   }
 
   /**
@@ -142,15 +163,9 @@ export class LibrarySourceService {
    * Load lessons from local manifest
    */
   private async loadLocalLessons(source: LibrarySource): Promise<SourceLessonEntry[]> {
-    const manifestPath = source.config.manifestPath || '/public/lessons/manifest.json';
-    
     try {
-      const response = await fetch(manifestPath);
-      if (!response.ok) {
-        throw new Error(`Failed to load local manifest: ${response.status}`);
-      }
-      
-      const manifest = await response.json();
+      // Use imported manifest instead of fetching to avoid routing issues
+      const manifest = localLessonsManifest;
       const lessons: SourceLessonEntry[] = [];
 
       // Extract lessons from all categories
@@ -191,9 +206,27 @@ export class LibrarySourceService {
     }
 
     try {
-      const response = await fetch(source.config.url);
+      console.log(`Loading remote lessons from: ${source.config.url}`);
+      
+      // Try direct fetch first (GitHub Raw should work with no-cors)
+      console.log(`Attempting direct fetch...`);
+      
+      // Add timeout for production environments
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(source.config.url, {
+        signal: controller.signal,
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error(`Failed to load remote manifest: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const manifest = await response.json();
@@ -221,10 +254,14 @@ export class LibrarySourceService {
         }
       }
 
+      console.log(`Successfully loaded ${lessons.length} lessons from remote source`);
       return lessons;
     } catch (error) {
-      console.error('Error loading remote lessons:', error);
-      throw new Error(`Failed to load remote lessons: ${error}`);
+      console.error(`Error loading remote lessons from ${source.config.url}:`, error);
+      
+      // For now, return an empty array instead of throwing to prevent the UI from breaking
+      console.warn(`Remote source ${source.name} is unavailable, returning empty lesson list`);
+      return [];
     }
   }
 

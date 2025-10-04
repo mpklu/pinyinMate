@@ -38,7 +38,27 @@ const SourceCard: React.FC<SourceCardProps> = ({
   onRefresh, 
   onNavigate 
 }) => {
+  const [lessonCount, setLessonCount] = useState<number | null>(source.metadata.totalLessons || null);
+
+  // Load lesson count on mount if not available
+  useEffect(() => {
+    const loadLessonCount = async () => {
+      if (lessonCount === null || lessonCount === 0) {
+        try {
+          const result = await librarySourceService.loadSourceLessons(source.id);
+          setLessonCount(result.lessons.length);
+        } catch (error) {
+          console.warn(`Failed to load lesson count for ${source.id}:`, error);
+          setLessonCount(0);
+        }
+      }
+    };
+
+    loadLessonCount();
+  }, [source.id, lessonCount]);
+
   const handleRefresh = () => {
+    setLessonCount(null); // Reset count to trigger reload
     onRefresh(source.id);
   };
 
@@ -86,7 +106,7 @@ const SourceCard: React.FC<SourceCardProps> = ({
         <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
           <Chip
             icon={<LibraryBooks />}
-            label={`${source.metadata.totalLessons || 0} lessons`}
+            label={lessonCount !== null ? `${lessonCount} lessons` : 'Loading...'}
             size="small"
             variant="outlined"
           />
@@ -188,39 +208,20 @@ export const LibrarySourcesPage: React.FC = () => {
   useEffect(() => {
     const initializeSources = async () => {
       try {
+        console.log('🔍 [LibrarySourcesPage] Starting initialization...');
         await librarySourceService.initialize();
-        const availableSources = librarySourceService.getSources();
+        console.log('✅ [LibrarySourcesPage] Initialize completed');
         
-        // Pre-load lesson counts for all sources
-        const updatedSources = await Promise.allSettled(
-          availableSources.map(async (source) => {
-            try {
-              // Load lessons to get accurate count
-              const result = await librarySourceService.loadSourceLessons(source.id);
-              return {
-                ...source,
-                metadata: {
-                  ...source.metadata,
-                  totalLessons: result.lessons.length
-                }
-              };
-            } catch (error) {
-              console.warn(`Failed to load lessons for source ${source.id}:`, error);
-              return source; // Return original source if loading fails
-            }
-          })
-        );
-
-        // Extract successful results
-        const sourcesWithCounts = updatedSources
-          .filter((result): result is PromiseFulfilledResult<LibrarySource> => result.status === 'fulfilled')
-          .map(result => result.value);
-
-        setSources(sourcesWithCounts);
+        const availableSources = librarySourceService.getSources();
+        console.log('📋 [LibrarySourcesPage] Available sources:', availableSources.length);
+        console.log('📋 [LibrarySourcesPage] Sources details:', availableSources);
+        
+        // Set sources without pre-loading (load on demand)
+        setSources(availableSources);
 
         // Get initial loading states
         const states = new Map<string, LoadingState>();
-        sourcesWithCounts.forEach(source => {
+        availableSources.forEach(source => {
           states.set(source.id, librarySourceService.getLoadingState(source.id));
         });
         setLoadingStates(states);
@@ -322,6 +323,8 @@ export const LibrarySourcesPage: React.FC = () => {
       {sources.length === 0 ? (
         <Alert severity="info">
           No lesson sources are currently available. Check your configuration.
+          <br />
+          Debug: sources.length = {sources.length}
         </Alert>
       ) : (
         <Box
