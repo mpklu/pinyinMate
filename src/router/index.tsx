@@ -137,6 +137,16 @@ export const router = createBrowserRouter([
         }
       },
       {
+        path: "library/:sourceId/quiz/:lessonId",
+        element: <QuizPage />,
+        loader: async () => {
+          // Preload quiz and related services for source-specific route
+          preloadServices.library();
+          preloadServices.audio();
+          return null;
+        }
+      },
+      {
         path: "lesson/:id",
         element: <LessonPage />,
         loader: async () => {

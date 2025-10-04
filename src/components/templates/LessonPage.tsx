@@ -547,7 +547,7 @@ export const LessonPage: React.FC = () => {
                   variant="outlined" 
                   size="small" 
                   startIcon={<QuizIcon />}
-                  onClick={() => navigate(`/quiz/${lesson?.id}`)}
+                  onClick={() => navigate(`/library/${sourceId}/quiz/${lesson?.id}`)}
                   fullWidth
                 >
                   Quiz

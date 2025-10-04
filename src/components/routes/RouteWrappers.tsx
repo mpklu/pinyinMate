@@ -53,6 +53,7 @@ const DEFAULT_QUIZ: Quiz = {
  */
 export const FlashcardPageRoute = () => {
   const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId?: string }>();
+  const navigate = useNavigate();
   const [segments, setSegments] = useState<TextSegment[]>(DEFAULT_SEGMENTS);
   const [loading, setLoading] = useState(true);
 
@@ -193,7 +194,13 @@ export const FlashcardPageRoute = () => {
     );
   }
 
-  return <FlashcardPage segments={segments} />;
+  return (
+    <FlashcardPage 
+      segments={segments} 
+      onNavigateBack={() => navigate(-1)}
+      onNavigateHome={() => navigate('/')}
+    />
+  );
 };
 
 /**
@@ -201,7 +208,8 @@ export const FlashcardPageRoute = () => {
  * Note: Quiz generation is handled by libraryService.ts with Chinese↔Pinyin questions
  */
 export const QuizPageRoute = () => {
-  const { lessonId } = useParams();
+  const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId?: string }>();
+  const navigate = useNavigate();
   const [quiz, setQuiz] = useState<Quiz>(DEFAULT_QUIZ);
   const [loading, setLoading] = useState(true);
 
@@ -254,7 +262,7 @@ export const QuizPageRoute = () => {
     };
 
     loadQuizData();
-  }, [lessonId]);  if (loading) {
+  }, [lessonId, sourceId]);  if (loading) {
     return (
       <Box 
         display="flex" 
@@ -269,7 +277,13 @@ export const QuizPageRoute = () => {
     );
   }
 
-  return <QuizPage quiz={quiz} />;
+  return (
+    <QuizPage 
+      quiz={quiz} 
+      onNavigateBack={() => navigate(-1)}
+      onNavigateHome={() => navigate('/')}
+    />
+  );
 };
 
 /**
