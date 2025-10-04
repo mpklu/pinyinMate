@@ -105,25 +105,7 @@
       "totalLessons": 0,
       "estimatedTime": 0,
       "lessons": [
-        {
-          "id": "lesson2",
-          "title": "第二课 夏、商、西周",
-          "description": "夏、商、西周",
-          "source": {
-            "type": "local",
-            "path": "/lessons/advanced/lesson2.json"
-          },
-          "metadata": {
-            "difficulty": "advanced",
-            "tags": [
-              "weather",
-              "seasons",
-              "nature"
-            ],
-            "characterCount": 206,
-            "estimatedTime": 15
-          }
-        }
+
       ]
     }
   ],

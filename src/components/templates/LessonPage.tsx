@@ -100,7 +100,7 @@ const PinyinDisplay: React.FC<{ sentence: string }> = ({ sentence }) => {
 export const LessonPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { lessonId } = useParams<{ lessonId: string }>();
+  const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId: string }>();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Core state
@@ -169,13 +169,23 @@ export const LessonPage: React.FC = () => {
         return;
       }
 
+      if (!sourceId) {
+        setError('No library source ID provided');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         
-        // Try to load lesson from library service
+        // Try to load lesson from specific library using libraryService
         const { libraryService } = await import('../../services/libraryService');
         await libraryService.initialize();
-        const lessons = await libraryService.getLessons();
+        
+        // Only get lessons from the specific library/source
+        const lessons = await libraryService.getLessons(sourceId);
+        console.log(`Available lessons from library ${sourceId}:`, lessons.map(l => l.id));
+        console.log('Looking for lesson ID:', lessonId);
         const foundLesson = lessons.find(lesson => lesson.id === lessonId);
         
         if (foundLesson) {
@@ -253,12 +263,17 @@ export const LessonPage: React.FC = () => {
     };
 
     loadLesson();
-  }, [lessonId]);
+  }, [lessonId, sourceId]);
 
   // Handlers
   const handleBack = useCallback(() => {
-    navigate('/library');
-  }, [navigate]);
+    // Navigate back to the specific library source page
+    if (sourceId) {
+      navigate(`/library/${sourceId}`);
+    } else {
+      navigate('/library');
+    }
+  }, [navigate, sourceId]);
 
   const handleProgressUpdate = useCallback((segmentId: string) => {
     setProgress(prev => {

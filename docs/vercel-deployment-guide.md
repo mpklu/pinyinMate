@@ -60,6 +60,10 @@ This guide covers deploying a React/Vite application to Vercel, including common
    vercel --prod
    ```
 
+   ```bash
+   npm run build && vercel --prod
+   ```
+
 3. **Verify deployment**
    - Test the provided URL
    - Check all routes work correctly

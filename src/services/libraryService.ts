@@ -30,10 +30,14 @@ import type {
 import type { LessonFlashcard } from '../types/enhancedFlashcard';
 import type { LessonQuizQuestion } from '../types/enhancedQuiz';
 import { generateToneMarkedPinyin } from './pinyinService';
+import type { DifficultyLevel } from '../types/common';
 
 // Configuration imports
 import remoteSourcesConfig from '../config/remote-sources.json';
 import { manifestBuilder } from './manifestBuilder';
+
+// Type aliases to avoid lint errors
+type SupportedFeature = "flashcards" | "quizzes" | "audio" | "segmentation" | "pinyin" | "vocabulary";
 
 /**
  * Production implementation of LibraryService
@@ -89,7 +93,7 @@ export class LibraryServiceImpl implements LibraryService {
     }
 
     if (library.type === 'remote') {
-      // Re-sync remote library
+      // Re-sync remote library by reloading it completely
       await this.syncRemoteLibrary(library);
     } else {
       // Reload local library
@@ -375,7 +379,7 @@ export class LibraryServiceImpl implements LibraryService {
           totalLessons: runtimeManifest.totalLessons,
           categories: runtimeManifest.categories,
           lastUpdated: new Date(runtimeManifest.lastUpdated),
-          supportedFeatures: runtimeManifest.supportedFeatures as ("flashcards" | "quizzes" | "audio" | "segmentation" | "pinyin" | "vocabulary")[]
+          supportedFeatures: runtimeManifest.supportedFeatures as SupportedFeature[]
         }
       };
 
@@ -387,33 +391,122 @@ export class LibraryServiceImpl implements LibraryService {
   }
 
   private async loadRemoteSources(): Promise<void> {
+    // Import librarySourceService to fetch actual remote lessons
+    const { librarySourceService } = await import('./librarySourceService');
+    
+    // Initialize the source service if not already done
+    try {
+      await librarySourceService.initialize();
+    } catch (error) {
+      console.warn('LibrarySourceService already initialized or failed to initialize:', error);
+    }
+
     // Load configured remote sources from config
     for (const source of remoteSourcesConfig.sources) {
       if (source.enabled && source.type === 'remote') {
         try {
-          // For now, create empty remote libraries
-          // In real implementation, would fetch from URLs
+          console.log(`Loading remote source: ${source.id}`);
+          
+          // Actually fetch lessons from the librarySourceService
+          const sourceResult = await librarySourceService.loadSourceLessons(source.id);
+          
+          // Convert SourceLessonEntry[] to Lesson[] format
+          const lessons: Lesson[] = [];
+          for (const sourceLessonEntry of sourceResult.lessons) {
+            // For remote lessons, we need to fetch the full lesson content
+            try {
+              const fullLesson = await librarySourceService.loadLesson(source.id, sourceLessonEntry.id);
+              lessons.push(fullLesson);
+            } catch (error) {
+              console.warn(`Failed to load lesson ${sourceLessonEntry.id} from source ${source.id}:`, error);
+              // Create a basic lesson from the source entry if full lesson fails
+              const basicLesson: Lesson = {
+                id: sourceLessonEntry.id,
+                title: sourceLessonEntry.title,
+                description: sourceLessonEntry.description,
+                content: 'Content loading failed. Please try refreshing.',
+                metadata: {
+                  difficulty: sourceLessonEntry.difficulty as DifficultyLevel,
+                  tags: sourceLessonEntry.tags,
+                  characterCount: sourceLessonEntry.characterCount,
+                  source: 'Remote',
+                  book: null,
+                  vocabulary: [],
+                  estimatedTime: sourceLessonEntry.estimatedTime,
+                  createdAt: new Date(sourceLessonEntry.createdAt),
+                  updatedAt: new Date(sourceLessonEntry.updatedAt)
+                }
+              };
+              lessons.push(basicLesson);
+            }
+          }
+          
           const remoteLibrary: LessonLibrary = {
+            ...source.config,
+            type: 'remote' as const,
+            lessons: lessons, // Now actually populated with lessons!
+            metadata: {
+              ...source.config.metadata,
+              totalLessons: lessons.length, // Update with actual count
+              lastUpdated: new Date(source.config.metadata.lastUpdated),
+              supportedFeatures: source.config.metadata.supportedFeatures as SupportedFeature[]
+            }
+          };
+          
+          this.libraries.set(source.id, remoteLibrary);
+          console.log(`Successfully loaded ${lessons.length} lessons from remote source: ${source.id}`);
+          
+        } catch (error) {
+          console.warn(`Failed to load remote source ${source.id}:`, error);
+          // Still create the library entry but with empty lessons
+          const emptyLibrary: LessonLibrary = {
             ...source.config,
             type: 'remote' as const,
             lessons: [],
             metadata: {
               ...source.config.metadata,
               lastUpdated: new Date(source.config.metadata.lastUpdated),
-              supportedFeatures: source.config.metadata.supportedFeatures as ("flashcards" | "quizzes" | "audio" | "segmentation" | "pinyin" | "vocabulary")[]
+              supportedFeatures: source.config.metadata.supportedFeatures as SupportedFeature[]
             }
           };
-          this.libraries.set(source.id, remoteLibrary);
-        } catch (error) {
-          console.warn(`Failed to load remote source ${source.id}:`, error);
+          this.libraries.set(source.id, emptyLibrary);
         }
       }
     }
   }
 
   private async syncRemoteLibrary(library: LessonLibrary): Promise<void> {
-    // Implementation would fetch from remote URL and update library
     console.log(`Syncing remote library: ${library.id}`);
+    
+    try {
+      // Import and use librarySourceService to refresh remote lessons
+      const { librarySourceService } = await import('./librarySourceService');
+      
+      // Force refresh the source lessons
+      const sourceResult = await librarySourceService.loadSourceLessons(library.id, true);
+      
+      // Convert and update the library with fresh lessons
+      const lessons: Lesson[] = [];
+      for (const sourceLessonEntry of sourceResult.lessons) {
+        try {
+          const fullLesson = await librarySourceService.loadLesson(library.id, sourceLessonEntry.id);
+          lessons.push(fullLesson);
+        } catch (error) {
+          console.warn(`Failed to load lesson ${sourceLessonEntry.id} during sync:`, error);
+        }
+      }
+      
+      // Update the library in place
+      library.lessons = lessons;
+      library.metadata.totalLessons = lessons.length;
+      library.metadata.lastUpdated = new Date();
+      
+      console.log(`Successfully synced ${lessons.length} lessons for library: ${library.id}`);
+      
+    } catch (error) {
+      console.error(`Failed to sync remote library ${library.id}:`, error);
+      throw error;
+    }
   }
 
   private async segmentLessonContent(content: string): Promise<SegmentedText> {
