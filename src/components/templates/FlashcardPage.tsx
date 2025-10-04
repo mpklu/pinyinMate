@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -113,6 +114,24 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
   onNavigateHome,
   onOpenSettings,
 }) => {
+  const navigate = useNavigate();
+  
+  // Handle navigation internally if no props provided
+  const handleNavigateHome = useCallback(() => {
+    if (onNavigateHome) {
+      onNavigateHome();
+    } else {
+      navigate('/');
+    }
+  }, [onNavigateHome, navigate]);
+
+  const handleNavigateBack = useCallback(() => {
+    if (onNavigateBack) {
+      onNavigateBack();
+    } else {
+      navigate(-1);
+    }
+  }, [onNavigateBack, navigate]);
   const [sessionState, setSessionState] = useState({
     studiedCards: new Set<string>(),
     masteredCards: new Set<string>(),
@@ -214,7 +233,7 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
           <IconButton
             edge="start"
             color="inherit"
-            onClick={onNavigateBack}
+            onClick={handleNavigateBack}
             aria-label="Go back"
           >
             <ArrowBack />
@@ -260,7 +279,7 @@ export const FlashcardPage: React.FC<FlashcardPageProps> = ({
           
           <IconButton
             color="inherit"
-            onClick={onNavigateHome}
+            onClick={handleNavigateHome}
             aria-label="Go home"
           >
             <Home />
