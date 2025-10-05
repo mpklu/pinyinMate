@@ -28,6 +28,7 @@ import {
   Pause as PauseIcon,
   Speed as SpeedIcon,
   Palette as ColorsIcon,
+  TextFields as TextSizeIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import type {
@@ -89,12 +90,14 @@ const getAutoScrollIcon = (enabled: boolean, paused: boolean) => {
 
 export const ReaderControls: React.FC<ReaderControlsProps> = ({
   readerState,
+  readerPreferences,
   onToggleReaderMode,
   onThemeChange,
   onPinyinModeChange,
   onToggleToneColors,
   onToggleAutoScroll,
   onAutoScrollSpeedChange,
+  onFontSizeChange,
 }) => {
   return (
     <ControlsContainer>
@@ -215,6 +218,47 @@ export const ReaderControls: React.FC<ReaderControlsProps> = ({
                 </StyledSelect>
               </FormControl>
             )}
+          </ControlSection>
+
+          <Divider orientation="vertical" flexItem />
+
+          {/* Text Size Controls */}
+          <ControlSection>
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+              Size:
+            </Typography>
+            <StyledToggleButtonGroup
+              value={(() => {
+                // Convert fontSize back to size labels
+                if (readerPreferences.fontSize <= 1.0) return 'small';
+                if (readerPreferences.fontSize <= 1.2) return 'medium';
+                return 'large';
+              })()}
+              exclusive
+              onChange={(_, value) => {
+                if (value) {
+                  const fontSizeMap = { small: 0.9, medium: 1.2, large: 1.5 };
+                  onFontSizeChange(fontSizeMap[value as keyof typeof fontSizeMap]);
+                }
+              }}
+              size="small"
+            >
+              <ToggleButton value="small">
+                <Tooltip title="Small Text">
+                  <TextSizeIcon fontSize="small" sx={{ fontSize: '16px' }} />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="medium">
+                <Tooltip title="Medium Text">
+                  <TextSizeIcon fontSize="small" sx={{ fontSize: '18px' }} />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="large">
+                <Tooltip title="Large Text">
+                  <TextSizeIcon fontSize="small" sx={{ fontSize: '20px' }} />
+                </Tooltip>
+              </ToggleButton>
+            </StyledToggleButtonGroup>
           </ControlSection>
 
           <Divider orientation="vertical" flexItem />

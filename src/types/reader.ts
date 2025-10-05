@@ -107,6 +107,8 @@ export interface ReaderSegment {
 export interface ReaderControlsProps {
   /** Current reader state */
   readerState: ReaderState;
+  /** Current reader preferences */
+  readerPreferences: ReaderPreferences;
   /** Callback when reader mode is toggled */
   onToggleReaderMode: () => void;
   /** Callback when theme changes */
@@ -119,6 +121,8 @@ export interface ReaderControlsProps {
   onToggleAutoScroll: () => void;
   /** Callback when auto-scroll speed changes */
   onAutoScrollSpeedChange: (speed: AutoScrollSpeed) => void;
+  /** Callback when font size changes */
+  onFontSizeChange: (fontSize: number) => void;
 }
 
 export interface ReadingSegmentProps {

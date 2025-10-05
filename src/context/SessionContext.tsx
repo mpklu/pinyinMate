@@ -75,7 +75,7 @@ const initialState: SessionState = {
     defaultPinyinMode: 'toneMarks',
     defaultShowToneColors: false,
     defaultAutoScrollSpeed: 1.0,
-    fontSize: 1.0,
+    fontSize: 1.2,
     lineHeight: 1.6,
   },
   studyProgress: {

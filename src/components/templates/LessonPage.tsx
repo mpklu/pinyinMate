@@ -128,6 +128,7 @@ export const LessonPage: React.FC = () => {
     toggleAutoScroll,
     setAutoScrollSpeed,
     updateReaderProgress,
+    setReaderPreferences,
   } = sessionContext;
 
   // Core state
@@ -735,12 +736,14 @@ export const LessonPage: React.FC = () => {
         }}>
           <ReaderControls
             readerState={sessionState.readerState}
+            readerPreferences={sessionState.readerPreferences}
             onToggleReaderMode={toggleReaderMode}
             onThemeChange={setReaderTheme}
             onPinyinModeChange={setReaderPinyinMode}
             onToggleToneColors={toggleReaderToneColors}
             onToggleAutoScroll={toggleAutoScroll}
             onAutoScrollSpeedChange={setAutoScrollSpeed}
+            onFontSizeChange={(fontSize) => setReaderPreferences({ fontSize })}
           />
         </Box>
       )}
