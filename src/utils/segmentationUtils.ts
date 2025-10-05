@@ -1,13 +1,79 @@
 /**
- * Enhanced segmentation utilities with browser-compatible Chinese word segmentation
+ * Enhanced segmentation utilities with real jieba-js integration and fallbacks
  */
+
+import segmentationConfig from '../config/segmentation.config.json';
+
+// Type for segmentation config
+interface SegmentationConfig {
+  textSegmentation: {
+    useJiebaJs: boolean;
+    enableLogging: boolean;
+  };
+}
+
+// Type for real jieba-js instance (based on actual jieba-js API)
+interface JiebaInterface {
+  cut: (sentence: string, hmm?: boolean) => string[];
+}
+
+// Cache for jieba instance to avoid repeated imports
+let jiebaInstance: JiebaInterface | null = null;
 
 /**
- * Advanced Chinese word segmentation using dictionary and pattern matching
- * This is a browser-compatible alternative to jieba-js
+ * Dynamically import real jieba-js only when needed
+ * This ensures jieba-js is only bundled when useJiebaJs is true
  */
+const loadRealJieba = async (): Promise<JiebaInterface | null> => {
+  // Check config to see if jieba should be used
+  const config = segmentationConfig as SegmentationConfig;
+  if (!config.textSegmentation.useJiebaJs) {
+    return null; // Don't even try to load if disabled
+  }
 
-// Comprehensive Chinese dictionary for better word boundary detection
+  if (!jiebaInstance) {
+    try {
+      // Dynamic import - this will be code-split and only loaded when called
+      const jiebaModule = await import(/* webpackChunkName: "jieba-js" */ 'jieba-js');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      jiebaInstance = (jiebaModule as any).default || jiebaModule;
+      
+      if (config.textSegmentation.enableLogging) {
+        console.log('✅ Real jieba-js loaded successfully');
+      }
+      
+      return jiebaInstance;
+    } catch (error) {
+      if (config.textSegmentation.enableLogging) {
+        console.warn('❌ Failed to load real jieba-js:', error);
+      }
+      return null;
+    }
+  }
+  return jiebaInstance;
+};
+
+/**
+ * Segment text using real jieba-js
+ */
+export const segmentWithRealJieba = async (text: string): Promise<string[]> => {
+  try {
+    const jieba = await loadRealJieba();
+    
+    if (!jieba) {
+      throw new Error('Real jieba-js not available');
+    }
+    
+    // Use jieba.cut with HMM for better accuracy
+    const segments = jieba.cut(text, true);
+    return Array.isArray(segments) ? segments : [text];
+  } catch (error) {
+    console.warn('Real jieba-js segmentation failed:', error);
+    throw error;
+  }
+};
+
+// Comprehensive Chinese dictionary for better word boundary detection (fallback method)
 const CHINESE_DICTIONARY = new Set([
   // Common 2-character words
   '你好', '我们', '什么', '可以', '已经', '没有', '不是', '这个', '那个', '他们', '她们', '时候',
@@ -130,7 +196,19 @@ const isParticle = (char: string): boolean => {
 };
 
 /**
- * Check if advanced segmentation is available (always true for browser-compatible version)
+ * Check if real jieba-js is available and enabled
+ */
+export const isRealJiebaAvailable = async (): Promise<boolean> => {
+  try {
+    const jieba = await loadRealJieba();
+    return jieba !== null;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Check if advanced segmentation is available (always true for fallback methods)
  */
 export const isAdvancedSegmentationAvailable = (): boolean => {
   return true; // Browser-compatible segmentation is always available
@@ -180,39 +258,55 @@ export const simpleWordSegmentation = (text: string): string[] => {
 };
 
 /**
- * Enhanced segmentation with jieba-js and fallback
+ * Enhanced segmentation with real jieba-js and fallbacks
  */
 export const enhancedSegmentation = async (
   text: string,
   useJieba: boolean = true
 ): Promise<{ 
   segments: string[];
-  method: 'jieba-js' | 'simple';
+  method: 'jieba-js' | 'advanced-rules' | 'simple';
   success: boolean;
   error?: string;
 }> => {
   
   if (useJieba) {
+    // First try real jieba-js
     try {
-      const segments = segmentWithAdvancedRules(text);
+      const segments = await segmentWithRealJieba(text);
       return {
         segments,
-        method: 'jieba-js', // Keep the same method name for compatibility
+        method: 'jieba-js',
         success: true
       };
-    } catch (error) {
-      console.warn('Advanced segmentation failed, falling back to simple method:', error);
+    } catch (jiebaError) {
+      console.warn('Real jieba-js failed, falling back to advanced rules:', jiebaError);
       
-      const segments = simpleWordSegmentation(text);
-      return {
-        segments,
-        method: 'simple',
-        success: true,
-        error: 'Advanced segmentation failed, used fallback'
-      };
+      // Fallback to advanced rules
+      try {
+        const segments = segmentWithAdvancedRules(text);
+        return {
+          segments,
+          method: 'advanced-rules',
+          success: true,
+          error: 'Real jieba-js failed, used advanced rules fallback'
+        };
+      } catch (advancedError) {
+        console.warn('Advanced rules failed, falling back to simple method:', advancedError);
+        
+        // Final fallback to simple segmentation
+        const segments = simpleWordSegmentation(text);
+        return {
+          segments,
+          method: 'simple',
+          success: true,
+          error: 'All advanced methods failed, used simple fallback'
+        };
+      }
     }
   }
   
+  // Use simple segmentation when jieba is disabled
   const segments = simpleWordSegmentation(text);
   return {
     segments,
@@ -222,7 +316,9 @@ export const enhancedSegmentation = async (
 };
 
 export default {
+  segmentWithRealJieba,
   segmentWithAdvancedRules,
+  isRealJiebaAvailable,
   isAdvancedSegmentationAvailable,
   simpleWordSegmentation,
   enhancedSegmentation

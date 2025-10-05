@@ -219,9 +219,11 @@ export const LessonPage: React.FC = () => {
       
       // Log segmentation method used for developer feedback
       if (segmentationResult.method === 'jieba-js') {
-        console.log('✅ Using advanced rules-based segmentation for enhanced word boundaries');
+        console.log('🎯 Using real jieba-js for optimal Chinese word segmentation');
+      } else if (segmentationResult.method === 'advanced-rules') {
+        console.log('✅ Using advanced rules-based segmentation (jieba-js fallback)');
       } else {
-        console.log('⚠️  Using fallback simple segmentation');
+        console.log('⚠️  Using simple segmentation (all advanced methods disabled/failed)');
       }
       
       const readerSegments: ReaderSegment[] = [];

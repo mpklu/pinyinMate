@@ -44,6 +44,11 @@ export default defineConfig({
             // Add other Chinese processing libraries here
           ],
           
+          // jieba-js as separate chunk for conditional loading
+          'jieba-segmentation': [
+            'jieba-js'
+          ],
+          
           // Audio processing
           'audio-processing': [
             // Audio-related libraries would go here

@@ -44,10 +44,23 @@ The project is split into two parts:
 - Automatic content validation & Chinese character heuristics
 
 ### Chinese Language Processing
-- Text segmentation (sentence / phrase / character strategies)
+- **Smart text segmentation** with multiple methods:
+  - Real jieba-js integration (optimal Chinese word boundaries)
+  - Advanced rules-based segmentation (browser-compatible fallback)
+  - Simple sentence-based segmentation (lightweight option)
 - Pinyin generation via `pinyin-pro` (abstracted in `pinyinService`)
 - Vocabulary enrichment (frequency, difficulty heuristics)
 - Inline vocabulary highlighting & popovers
+
+### Reader Mode
+- **Immersive reading experience** with configurable themes (default, dark, sepia, high contrast)
+- **Intelligent word segmentation** for natural reading flow
+- **Interactive pinyin display** (tones, numbers, or hidden modes)
+- **Auto-scroll functionality** with adjustable speed
+- **Click-to-listen audio** for individual segments
+- **Adjustable font sizes** for comfortable reading
+- **Progress tracking** with visual indicators
+- **Stable layout** optimized to prevent text shifting during auto-scroll
 
 ### Study Tools & Interactivity
 - Flashcard generation (from processed vocabulary)
@@ -95,8 +108,17 @@ public/lessons/           # Local lesson manifest + lesson JSON files
 schemas/lesson.schema.json# Authoritative lesson schema
 src/services/             # Core service layer (processing, audio, translation...)
 src/components/           # Atomic design UI components
+  ├── atoms/             # Basic UI elements (ReadingSegment, ReaderControls)
+  ├── molecules/         # Simple composites
+  ├── organisms/         # Complex components (ReaderView)
+  └── templates/         # Full page layouts (LessonPage with reader mode)
+src/config/               # Configuration files
+  ├── segmentation.config.json    # Text segmentation settings
+  └── segmentationRuntime.ts      # Runtime configuration controls
+src/utils/                # Utility functions
+  └── segmentationUtils.ts        # Jieba-js integration & fallbacks
 src/router/               # Route configuration + preload logic
-src/context/SessionContext.tsx
+src/context/SessionContext.tsx   # Reader preferences & state
 lesson-builder/           # Separate app for authoring/validation (WIP)
 docs/                     # In-depth guides & component API
 ```
@@ -148,6 +170,26 @@ npm run format:check     # Prettier check
 
 To source remote lessons, add a provider to `src/config/remote-sources.json` and ensure the remote manifest follows the documented structure.
 
+### Configuring Text Segmentation
+The app supports multiple Chinese text segmentation methods with smart fallbacks. Configuration is available in `src/config/segmentation.config.json`:
+
+```json
+{
+  "textSegmentation": {
+    "useJiebaJs": true,        // Enable real jieba-js (optimal results)
+    "fallbackEnabled": true,   // Allow fallback to simpler methods
+    "enableLogging": true      // Show segmentation method in console
+  }
+}
+```
+
+**Segmentation Methods** (automatic fallback order):
+1. **Real jieba-js** - Optimal Chinese word boundaries (when `useJiebaJs: true`)
+2. **Advanced rules** - Dictionary + pattern matching (browser-compatible fallback)  
+3. **Simple segmentation** - Sentence-based splitting (lightweight option)
+
+**Bundle Optimization**: When `useJiebaJs: false`, the jieba-js library is excluded from the bundle, resulting in a significantly smaller build size. The app gracefully falls back to browser-compatible segmentation methods.
+
 ### Validation
 At runtime the `schemaValidation` service validates lesson structure. Failing lessons are skipped or surfaced with user-friendly error messages (see `errorHandler.ts`). For bulk authoring, the lesson builder will provide schema and structural validation (work in progress).
 
@@ -160,6 +202,42 @@ npm run lint         # Static analysis
 npm run build:with-types
 ```
 Treat a passing build + lint + a11y + unit tests as your merge baseline.
+
+### Using Reader Mode
+1. **Access**: Open any lesson and click the "Reader Mode" button
+2. **Theme Selection**: Choose from default, dark, sepia, or high contrast themes
+3. **Pinyin Controls**: Toggle between tone marks, numbers, or hidden pinyin
+4. **Font Size**: Adjust text size for comfortable reading
+5. **Auto-scroll**: Enable automatic progression through text segments
+6. **Audio Playback**: Click any text segment to hear pronunciation
+
+**Reader Mode Features**:
+- **Smart Segmentation**: Text is intelligently divided into meaningful word boundaries
+- **Visual Highlighting**: Current segment is highlighted during auto-scroll
+- **Progress Tracking**: Visual progress indicator shows reading completion
+- **Responsive Design**: Optimized for both desktop and mobile devices
+
+### Developer Configuration
+
+**Runtime Segmentation Control** (`src/config/segmentationRuntime.ts`):
+```typescript
+export const SEGMENTATION_CONFIG = {
+  USE_JIEBA_JS: true,        // Toggle jieba-js at runtime
+  ENABLE_LOGGING: false,     // Console logging for debugging
+  FALLBACK_ENABLED: true,    // Allow graceful degradation
+};
+```
+
+**Performance Tuning** (`src/config/segmentation.config.json`):
+```json
+{
+  "performance": {
+    "jiebaTimeout": 3000,              // Max time for jieba processing
+    "fallbackTimeout": 1000,           // Max time for fallback methods
+    "enablePerformanceMetrics": true   // Track segmentation performance
+  }
+}
+```
 
 ### Optional Translation Providers
 The translation service works out of the box with a fallback dictionary. To enable external APIs, supply credentials (e.g. Google / Azure) via environment variables and extend configuration inside `translationService.ts` (see `docs/translation-setup.md`).
@@ -193,16 +271,23 @@ This project is licensed under the MIT License – see `LICENSE` for details.
 ---
 
 ## Roadmap (Snapshot)
+- [x] **Reader Mode** - Immersive reading experience with themes, auto-scroll, and pinyin controls
+- [x] **Smart Text Segmentation** - jieba-js integration with browser-compatible fallbacks
+- [x] **Bundle Optimization** - Conditional loading for optimal performance
 - [ ] Lesson Builder advanced validation & preview
-- [ ] User progress persistence & profile export
+- [ ] User progress persistence & profile export  
+- [ ] Context-aware semantic segmentation (experimental)
 - [ ] Offline PWA packaging
 - [ ] Additional spaced repetition algorithms
+- [ ] Advanced reader analytics (reading speed, segment difficulty tracking)
 
 ---
 
 ## Acknowledgements
-- Built with React, Vite, TypeScript, Material UI
+- Built with React 19, Vite, TypeScript, Material UI
 - Pinyin generation powered by `pinyin-pro`
+- Chinese text segmentation via `jieba-js` with intelligent fallbacks
+- Reader mode with immersive themes and accessibility features
 - Testing stack: Vitest, Playwright, axe-core
 
 ---
