@@ -11,6 +11,7 @@ export * from './annotation';
 export * from './quiz';
 export * from './flashcard';
 export * from './library';
+export * from './reader';
 
 // Re-export commonly used types for convenience
 export type {

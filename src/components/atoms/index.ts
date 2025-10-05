@@ -49,6 +49,9 @@ export type { DifficultyRatingProps, DifficultyLevel } from './DifficultyRating'
 export { DifficultyBadge } from './DifficultyBadge';
 export type { DifficultyLevel as BadgeDifficultyLevel } from './DifficultyBadge';
 
+export { ReaderControls } from './ReaderControls';
+export { ReadingSegment } from './ReadingSegment';
+
 // Skeleton components for loading states
 export { LessonCardSkeleton } from './LessonCardSkeleton';
 export type { LessonCardSkeletonProps } from './LessonCardSkeleton';
