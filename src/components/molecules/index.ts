@@ -36,3 +36,5 @@ export type { StudyToolsPanelProps, FlashcardGenerationOptions, QuizGenerationOp
 
 export { default as EnhancedLessonCard } from './EnhancedLessonCard';
 export type { EnhancedLessonCardProps } from './EnhancedLessonCard';
+
+export { ReadingSegment } from './ReadingSegment';

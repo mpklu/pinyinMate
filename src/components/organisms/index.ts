@@ -19,3 +19,5 @@ export type { QuizContainerProps, QuizProgress } from './QuizContainer';
 export type { FlashcardDeckProps } from './FlashcardDeck';
 export type { ExportPanelProps, ExportFormat as OrganismExportFormat, ExportOptions as OrganismExportOptions } from './ExportPanel';
 export type { LessonContentProps } from './LessonContent';
+
+export { ReaderView } from './ReaderView';

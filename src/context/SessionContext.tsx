@@ -4,6 +4,7 @@ import type { TextAnnotation } from '../types/annotation';
 import type { Quiz } from '../types/quiz';
 import type { Flashcard } from '../types/flashcard';
 import type { EnhancedLesson, LessonStudyProgress } from '../types/lesson';
+import type { ReaderState, ReaderPreferences } from '../types/reader';
 import { enhancedLessonService } from '../services/simpleEnhancedIntegration';
 
 // Session state interface
@@ -22,6 +23,10 @@ export interface SessionState {
   showPinyin: boolean;
   showDefinitions: boolean;
   showToneMarks: boolean;
+  
+  // Reader mode state
+  readerState: ReaderState;
+  readerPreferences: ReaderPreferences;
   
   // Study session data
   studyProgress: {
@@ -49,6 +54,30 @@ const initialState: SessionState = {
   showPinyin: true,
   showDefinitions: true,
   showToneMarks: true,
+  readerState: {
+    isActive: false,
+    theme: 'sepia',
+    pinyinMode: 'toneMarks',
+    showToneColors: false,
+    autoScroll: {
+      enabled: false,
+      speed: 1.0,
+      paused: false,
+    },
+    progress: {
+      currentSegmentIndex: 0,
+      totalSegments: 0,
+      progressPercentage: 0,
+    },
+  },
+  readerPreferences: {
+    defaultTheme: 'sepia',
+    defaultPinyinMode: 'toneMarks',
+    defaultShowToneColors: false,
+    defaultAutoScrollSpeed: 1.0,
+    fontSize: 1.0,
+    lineHeight: 1.6,
+  },
   studyProgress: {
     totalStudied: 0,
     correctAnswers: 0,
@@ -75,7 +104,18 @@ export type SessionAction =
   | { type: 'SET_LAST_VISITED_PAGE'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'RESET_SESSION' };
+  | { type: 'RESET_SESSION' }
+  // Reader mode actions
+  | { type: 'TOGGLE_READER_MODE' }
+  | { type: 'SET_READER_THEME'; payload: ReaderState['theme'] }
+  | { type: 'SET_READER_PINYIN_MODE'; payload: ReaderState['pinyinMode'] }
+  | { type: 'TOGGLE_READER_TONE_COLORS' }
+  | { type: 'TOGGLE_AUTO_SCROLL' }
+  | { type: 'SET_AUTO_SCROLL_SPEED'; payload: ReaderState['autoScroll']['speed'] }
+  | { type: 'PAUSE_AUTO_SCROLL' }
+  | { type: 'RESUME_AUTO_SCROLL' }
+  | { type: 'UPDATE_READER_PROGRESS'; payload: Partial<ReaderState['progress']> }
+  | { type: 'SET_READER_PREFERENCES'; payload: Partial<ReaderPreferences> };
 
 // Session reducer
 function sessionReducer(state: SessionState, action: SessionAction): SessionState {
@@ -183,6 +223,113 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         showPinyin: state.showPinyin, // Preserve UI preferences
         showDefinitions: state.showDefinitions,
         showToneMarks: state.showToneMarks,
+        readerPreferences: state.readerPreferences, // Preserve reader preferences
+      };
+    
+    // Reader mode cases
+    case 'TOGGLE_READER_MODE':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          isActive: !state.readerState.isActive,
+        },
+      };
+    
+    case 'SET_READER_THEME':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          theme: action.payload,
+        },
+      };
+    
+    case 'SET_READER_PINYIN_MODE':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          pinyinMode: action.payload,
+        },
+      };
+    
+    case 'TOGGLE_READER_TONE_COLORS':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          showToneColors: !state.readerState.showToneColors,
+        },
+      };
+    
+    case 'TOGGLE_AUTO_SCROLL':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          autoScroll: {
+            ...state.readerState.autoScroll,
+            enabled: !state.readerState.autoScroll.enabled,
+          },
+        },
+      };
+    
+    case 'SET_AUTO_SCROLL_SPEED':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          autoScroll: {
+            ...state.readerState.autoScroll,
+            speed: action.payload,
+          },
+        },
+      };
+    
+    case 'PAUSE_AUTO_SCROLL':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          autoScroll: {
+            ...state.readerState.autoScroll,
+            paused: true,
+          },
+        },
+      };
+    
+    case 'RESUME_AUTO_SCROLL':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          autoScroll: {
+            ...state.readerState.autoScroll,
+            paused: false,
+          },
+        },
+      };
+    
+    case 'UPDATE_READER_PROGRESS':
+      return {
+        ...state,
+        readerState: {
+          ...state.readerState,
+          progress: {
+            ...state.readerState.progress,
+            ...action.payload,
+          },
+        },
+      };
+    
+    case 'SET_READER_PREFERENCES':
+      return {
+        ...state,
+        readerPreferences: {
+          ...state.readerPreferences,
+          ...action.payload,
+        },
       };
     
     default:
@@ -213,6 +360,18 @@ export interface SessionContextType {
   toggleToneMarks: () => void;
   updateStudyProgress: (correct: boolean, timeSpent: number) => void;
   setLastVisitedPage: (page: string) => void;
+  
+  // Reader mode methods
+  toggleReaderMode: () => void;
+  setReaderTheme: (theme: ReaderState['theme']) => void;
+  setReaderPinyinMode: (mode: ReaderState['pinyinMode']) => void;
+  toggleReaderToneColors: () => void;
+  toggleAutoScroll: () => void;
+  setAutoScrollSpeed: (speed: ReaderState['autoScroll']['speed']) => void;
+  pauseAutoScroll: () => void;
+  resumeAutoScroll: () => void;
+  updateReaderProgress: (progress: Partial<ReaderState['progress']>) => void;
+  setReaderPreferences: (preferences: Partial<ReaderPreferences>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   resetSession: () => void;
@@ -336,6 +495,47 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     dispatch({ type: 'RESET_SESSION' });
   };
 
+  // Reader mode methods
+  const toggleReaderMode = () => {
+    dispatch({ type: 'TOGGLE_READER_MODE' });
+  };
+
+  const setReaderTheme = (theme: ReaderState['theme']) => {
+    dispatch({ type: 'SET_READER_THEME', payload: theme });
+  };
+
+  const setReaderPinyinMode = (mode: ReaderState['pinyinMode']) => {
+    dispatch({ type: 'SET_READER_PINYIN_MODE', payload: mode });
+  };
+
+  const toggleReaderToneColors = () => {
+    dispatch({ type: 'TOGGLE_READER_TONE_COLORS' });
+  };
+
+  const toggleAutoScroll = () => {
+    dispatch({ type: 'TOGGLE_AUTO_SCROLL' });
+  };
+
+  const setAutoScrollSpeed = (speed: ReaderState['autoScroll']['speed']) => {
+    dispatch({ type: 'SET_AUTO_SCROLL_SPEED', payload: speed });
+  };
+
+  const pauseAutoScroll = () => {
+    dispatch({ type: 'PAUSE_AUTO_SCROLL' });
+  };
+
+  const resumeAutoScroll = () => {
+    dispatch({ type: 'RESUME_AUTO_SCROLL' });
+  };
+
+  const updateReaderProgress = (progress: Partial<ReaderState['progress']>) => {
+    dispatch({ type: 'UPDATE_READER_PROGRESS', payload: progress });
+  };
+
+  const setReaderPreferences = (preferences: Partial<ReaderPreferences>) => {
+    dispatch({ type: 'SET_READER_PREFERENCES', payload: preferences });
+  };
+
   const contextValue: SessionContextType = useMemo(() => ({
     state,
     dispatch,
@@ -355,6 +555,17 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     setLoading,
     setError,
     resetSession,
+    // Reader mode methods
+    toggleReaderMode,
+    setReaderTheme,
+    setReaderPinyinMode,
+    toggleReaderToneColors,
+    toggleAutoScroll,
+    setAutoScrollSpeed,
+    pauseAutoScroll,
+    resumeAutoScroll,
+    updateReaderProgress,
+    setReaderPreferences,
   }), [
     state, 
     setCurrentLesson, 
