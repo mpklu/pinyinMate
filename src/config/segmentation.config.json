@@ -1,0 +1,18 @@
+{
+  "textSegmentation": {
+    "useJiebaJs": true,
+    "fallbackEnabled": true,
+    "performanceMode": "balanced",
+    "maxTextLength": 5000,
+    "enableLogging": true
+  },
+  "performance": {
+    "jiebaTimeout": 3000,
+    "fallbackTimeout": 1000,
+    "enablePerformanceMetrics": true
+  },
+  "experimental": {
+    "enableContextAwareGrouping": false,
+    "enableSemanticSegmentation": false
+  }
+}

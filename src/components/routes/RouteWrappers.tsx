@@ -1,21 +1,5 @@
 /**
- * Route wrapper components that export const FlashcardPageRoute = () => {
-  const { lessonId, sourceId } = useParams<{ lessonId: string; sourceId?: string }>();
-  const [segments, setSegments] = useState<TextSegment[]>(DEFAULT_SEGMENTS);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadFlashcardData = async () => {
-      performanceMonitor.startTiming('flashcard-route-load');
-      
-      try {
-        if (lessonId) {
-          // Determine which source to load from
-          const targetSourceId = sourceId || 'local-custom'; // Default to local if no sourceId
-          
-          // Load lesson from the specified source
-          try {
-            const lesson = await librarySourceService.loadLesson(targetSourceId, lessonId);ading and prop injection
+ * Route wrapper components that handle data loading and prop injection
  * Decouples routing from component props for better lazy loading
  */
 

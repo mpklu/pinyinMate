@@ -34,6 +34,10 @@ import type {
 import { playTextDirectly } from '../../services/audioService';
 import { pinyinService } from '../../services/pinyinService';
 
+// Import segmentation utilities
+import { enhancedSegmentation } from '../../utils/segmentationUtils';
+import { shouldUseJieba } from '../../config/segmentationRuntime';
+
 // Import context
 import { SessionContext } from '../../context/SessionContext';
 
@@ -199,89 +203,27 @@ export const LessonPage: React.FC = () => {
 
   // Process lesson content into reader segments (word-based)
   const processLessonForReader = useCallback(async (lessonContent: string): Promise<ReaderSegment[]> => {
-    // Helper functions for word segmentation
-    const processEnglishSegment = (text: string, startIndex: number) => {
-      let end = startIndex;
-      while (end < text.length && /[a-zA-Z0-9]/.test(text[end])) {
-        end++;
-      }
-      return {
-        segment: { text: text.substring(startIndex, end), position: { start: startIndex, end } },
-        nextIndex: end
-      };
-    };
 
-    const processChineseSegment = (text: string, startIndex: number, commonWords: Set<string>) => {
-      // Check for common words first
-      for (let len = 3; len >= 2; len--) {
-        const word = text.substring(startIndex, startIndex + len);
-        if (commonWords.has(word)) {
-          return {
-            segment: { text: word, position: { start: startIndex, end: startIndex + len } },
-            nextIndex: startIndex + len
-          };
-        }
-      }
-      
-      // Default to 2-character grouping for Chinese
-      const maxEnd = Math.min(startIndex + 2, text.length);
-      let end = startIndex + 1;
-      
-      if (end < maxEnd && /[\u4e00-\u9fff]/.test(text[end])) {
-        end++;
-      }
-      
-      return {
-        segment: { text: text.substring(startIndex, end), position: { start: startIndex, end } },
-        nextIndex: end
-      };
-    };
 
-    const processNextSegment = (text: string, startIndex: number, commonWords: Set<string>) => {
-      const char = text[startIndex];
-      
-      if (/[\u4e00-\u9fff]/.test(char)) {
-        return processChineseSegment(text, startIndex, commonWords);
-      }
-      
-      if (/[a-zA-Z0-9]/.test(char)) {
-        return processEnglishSegment(text, startIndex);
-      }
-      
-      if (/[。！？，；：、"'（）【】《》〈〉]/.test(char) || char === ' ') {
-        return {
-          segment: { text: char, position: { start: startIndex, end: startIndex + 1 } },
-          nextIndex: startIndex + 1
-        };
-      }
-      
-      return null;
-    };
 
-    const createWordBasedSegments = (text: string) => {
-      const segments = [];
-      const commonWords = new Set([
-        '你好', '我们', '什么', '可以', '已经', '没有', '不是', '这个', '那个', '他们', '她们', '时候',
-        '因为', '所以', '但是', '如果', '然后', '现在', '今天', '明天', '昨天', '一些', '很多', '不会'
-      ]);
-      
-      let i = 0;
-      while (i < text.length) {
-        const segment = processNextSegment(text, i, commonWords);
-        if (segment) {
-          segments.push(segment.segment);
-          i = segment.nextIndex;
-        } else {
-          i++;
-        }
-      }
-      
-      return segments;
-    };
+
+    // Enhanced segmentation with jieba-js or fallback to simple method
 
     try {
-      // Custom word-based segmentation for reader mode
-      const wordSegments = createWordBasedSegments(lessonContent);
+      // Enhanced segmentation with jieba-js support
+      const segmentationResult = await enhancedSegmentation(lessonContent, shouldUseJieba());
+      const wordSegments = segmentationResult.segments.map((text) => ({
+        text,
+        position: { start: 0, end: text.length } // Simplified position for now
+      }));
+      
+      // Log segmentation method used for developer feedback
+      if (segmentationResult.method === 'jieba-js') {
+        console.log('✅ Using advanced rules-based segmentation for enhanced word boundaries');
+      } else {
+        console.log('⚠️  Using fallback simple segmentation');
+      }
+      
       const readerSegments: ReaderSegment[] = [];
       
       for (let i = 0; i < wordSegments.length; i++) {
