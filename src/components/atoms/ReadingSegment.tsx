@@ -15,17 +15,17 @@ const getThemeStyles = (theme: ReaderTheme) => {
       return {
         backgroundColor: '#1a1a1a',
         color: '#e0e0e0',
-        activeBackground: '#333333',
-        playingBackground: '#4a4a4a',
-        border: '#555555',
+        activeBackground: '#4a90e2',
+        playingBackground: '#e24a4a',
+        border: '#ffffff',
       };
     case 'sepia':
       return {
         backgroundColor: '#f4f1e8',
         color: '#5c4b37',
-        activeBackground: '#e6dcc6',
-        playingBackground: '#d4c5a9',
-        border: '#c7b299',
+        activeBackground: '#d4a574',
+        playingBackground: '#c4956b',
+        border: '#8b4513',
       };
     case 'highContrast':
       return {
@@ -40,9 +40,9 @@ const getThemeStyles = (theme: ReaderTheme) => {
       return {
         backgroundColor: '#ffffff',
         color: '#333333',
-        activeBackground: '#e3f2fd',
-        playingBackground: '#f3e5f5',
-        border: '#e0e0e0',
+        activeBackground: '#2196f3',
+        playingBackground: '#ff5722',
+        border: '#1976d2',
       };
   }
 };
@@ -76,8 +76,12 @@ const SegmentButton = styled('button', {
     if (isPlaying) return themeStyles.playingBackground;
     return 'transparent';
   })(),
-  border: `1px solid ${isActive || isPlaying ? themeStyles.border : 'transparent'}`,
+  border: `2px solid ${isActive || isPlaying ? themeStyles.border : 'transparent'}`,
   fontFamily: 'inherit',
+
+
+  fontWeight: isActive || isPlaying ? 'bold' : 'normal',
+  color: isActive || isPlaying ? '#ffffff' : 'inherit',
   '&:hover': {
     backgroundColor: themeStyles.activeBackground,
     transform: 'scale(1.02)',

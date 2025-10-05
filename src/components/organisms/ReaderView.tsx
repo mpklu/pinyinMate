@@ -139,7 +139,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         if (nextIndex < segments.length) {
           onProgressChange(nextIndex);
         }
-      }, (3000 / readerState.autoScroll.speed)); // Adjust timing based on speed
+      }, (250 / readerState.autoScroll.speed)); // Much faster timing for word-based segments
       
       return () => clearInterval(interval);
     }
