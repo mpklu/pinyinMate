@@ -8,6 +8,13 @@ An open, schema‑driven Chinese learning platform built with React 19, TypeScri
 
 > All lesson data is validated against a JSON Schema and can come from local files or remote GitHub/content APIs. Services handle Chinese text processing, audio synthesis, translation, spaced repetition, exporting, and performance optimization.
 
+<p align="center">
+  <a href="https://pinyinmate.vercel.app/" target="_blank" rel="noopener noreferrer">
+    <img src="demo.gif" alt="PinyinMate live demo preview" />
+  </a>
+  <br />
+</p>
+
 ---
 
 ## Table of Contents
