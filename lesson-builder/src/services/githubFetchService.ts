@@ -103,8 +103,17 @@ export async function fetchLesson(
 
   const data = await response.json();
 
-  // Decode base64 content
-  const content = atob(data.content.replace(/\n/g, ''));
+  // Decode base64 content with proper UTF-8 handling
+  const base64Content = data.content.replace(/\n/g, '');
+  const binaryString = atob(base64Content);
+  
+  // Convert binary string to UTF-8
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const content = new TextDecoder('utf-8').decode(bytes);
+  
   const lesson: Lesson = JSON.parse(content);
 
   return lesson;
