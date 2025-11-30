@@ -42,12 +42,15 @@ interface LessonBrowserProps {
   onClose?: () => void;
 }
 
+type SortOption = 'title' | 'date' | 'characters' | 'difficulty';
+
 const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
   const [lessons, setLessons] = useState<LessonListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
+  const [sortBy, setSortBy] = useState<SortOption>('date');
 
   // Load lessons from configured sources
   useEffect(() => {
@@ -78,10 +81,30 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
     }
   };
 
-  // Filter lessons based on search and filters
-  const filteredLessons = useMemo(() => {
-    return filterLessons(lessons, searchQuery, filters);
-  }, [lessons, searchQuery, filters]);
+  // Filter and sort lessons
+  const filteredAndSortedLessons = useMemo(() => {
+    let result = filterLessons(lessons, searchQuery, filters);
+    
+    // Sort lessons
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'title':
+          return a.lesson.title.localeCompare(b.lesson.title);
+        case 'date':
+          return b.metadata.lastModified.getTime() - a.metadata.lastModified.getTime();
+        case 'characters':
+          return b.lesson.metadata.characterCount - a.lesson.metadata.characterCount;
+        case 'difficulty': {
+          const difficultyOrder = { beginner: 0, intermediate: 1, advanced: 2 };
+          return difficultyOrder[a.lesson.metadata.difficulty] - difficultyOrder[b.lesson.metadata.difficulty];
+        }
+        default:
+          return 0;
+      }
+    });
+    
+    return result;
+  }, [lessons, searchQuery, filters, sortBy]);
 
   // Group lessons by difficulty
   const lessonsByDifficulty = useMemo(() => {
@@ -91,15 +114,15 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
       advanced: [],
     };
 
-    filteredLessons.forEach((item) => {
+    for (const item of filteredAndSortedLessons) {
       const difficulty = item.lesson.metadata.difficulty || 'beginner';
       if (groups[difficulty]) {
         groups[difficulty].push(item);
       }
-    });
+    }
 
     return groups;
-  }, [filteredLessons]);
+  }, [filteredAndSortedLessons]);
 
   const handleLessonSelect = async (item: LessonListItem) => {
     try {
@@ -124,6 +147,12 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
     }));
   };
 
+  const getDifficultyColor = (difficulty: string) => {
+    if (difficulty === 'beginner') return 'success';
+    if (difficulty === 'intermediate') return 'warning';
+    return 'error';
+  };
+
   const renderLessonCard = (item: LessonListItem) => {
     const { lesson, metadata } = item;
     const formattedDate = new Date(metadata.lastModified).toLocaleDateString();
@@ -143,13 +172,7 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
                 <Chip
                   label={lesson.metadata.difficulty}
                   size="small"
-                  color={
-                    lesson.metadata.difficulty === 'beginner'
-                      ? 'success'
-                      : lesson.metadata.difficulty === 'intermediate'
-                      ? 'warning'
-                      : 'error'
-                  }
+                  color={getDifficultyColor(lesson.metadata.difficulty)}
                 />
                 {lesson.metadata.lscsLevel && (
                   <Chip label={lesson.metadata.lscsLevel} size="small" variant="outlined" />
@@ -232,7 +255,7 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <FormControl fullWidth size="small">
               <InputLabel>Min Characters</InputLabel>
               <Select
@@ -249,10 +272,26 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                label="Sort By"
+              >
+                <MenuItem value="date">Last Modified</MenuItem>
+                <MenuItem value="title">Title (A-Z)</MenuItem>
+                <MenuItem value="characters">Character Count</MenuItem>
+                <MenuItem value="difficulty">Difficulty</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={2}>
             <Typography variant="body2" color="text.secondary" sx={{ pt: 1 }}>
               <FilterList fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-              {filteredLessons.length} lesson{filteredLessons.length !== 1 ? 's' : ''} found
+              {filteredAndSortedLessons.length} lesson{filteredAndSortedLessons.length === 1 ? '' : 's'} found
             </Typography>
           </Grid>
         </Grid>
@@ -283,14 +322,14 @@ const LessonBrowser = ({ onLessonSelect, onClose }: LessonBrowserProps) => {
             return (
               <Box key={difficulty} sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2, textTransform: 'capitalize' }}>
-                  📚 {difficulty} ({items.length} lesson{items.length !== 1 ? 's' : ''})
+                  📚 {difficulty} ({items.length} lesson{items.length === 1 ? '' : 's'})
                 </Typography>
                 {items.map(renderLessonCard)}
               </Box>
             );
           })}
 
-          {filteredLessons.length === 0 && (
+          {filteredAndSortedLessons.length === 0 && (
             <Alert severity="info">
               No lessons found. Try adjusting your search or filters.
             </Alert>
