@@ -1,5 +1,14 @@
 import type { Lesson, VocabularyEntry, DifficultyLevel } from './lesson';
 
+// Lesson source information
+export interface LessonSource {
+  type: 'local' | 'remote';
+  sourceId: string;
+  sourceName: string;
+  path: string;
+  url?: string;
+}
+
 // Builder-specific types
 export interface LessonBuilderState {
   // Basic lesson info
@@ -25,6 +34,18 @@ export interface LessonBuilderState {
   isProcessing: boolean;
   isDirty: boolean;
   publishStatus: PublishStatus;
+  
+  // Edit mode state
+  mode: 'create' | 'edit';
+  originalLesson?: Lesson;
+  lessonSource?: LessonSource;
+  originalSha?: string;
+  
+  // Browser state
+  browserOpen: boolean;
+  availableLessons: any[]; // LessonListItem[] from githubFetchService
+  lessonSearchQuery: string;
+  isLoadingLessons: boolean;
 }
 
 export interface SuggestedVocabEntry extends VocabularyEntry {

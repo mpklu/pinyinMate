@@ -98,3 +98,11 @@ export function getAllLSCSLevels(): LSCSLevelMapping[] {
 export function getLSCSFolderPath(lscsLevel: string): string {
   return lscsLevel; // Directly use the level name as folder
 }
+
+/**
+ * Get LSCS level from difficulty (for backward compatibility)
+ * This is an alias for getDefaultLSCSLevel
+ */
+export function getLSCSLevelFromDifficulty(difficulty: PinyinMateDifficulty): string {
+  return getDefaultLSCSLevel(difficulty);
+}
