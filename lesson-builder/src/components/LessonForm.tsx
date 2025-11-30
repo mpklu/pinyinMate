@@ -69,15 +69,34 @@ const LessonForm = ({ mode = 'create' }: LessonFormProps) => {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (force: boolean = false) => {
     if (!validation.isValid) {
       return;
     }
 
     try {
-      await updateLesson();
+      await updateLesson({ force });
     } catch (error) {
       console.error('Failed to update lesson:', error);
+      
+      // Handle conflict error
+      if (error instanceof Error && (error as any).code === 'CONFLICT') {
+        const shouldForce = globalThis.confirm(
+          'This lesson has been modified by another user. ' +
+          'Do you want to reload the latest version? ' +
+          '\n\nClick OK to reload (your changes will be lost) ' +
+          '\nor Cancel to force your update (overwrites other changes).'
+        );
+        
+        if (shouldForce) {
+          // User wants to force update
+          handleUpdate(true);
+        } else {
+          // User wants to reload - would need to re-fetch the lesson
+          // For now, just show the error
+          alert('Please save your work locally and reload the lesson manually.');
+        }
+      }
     }
   };
 
@@ -152,7 +171,7 @@ const LessonForm = ({ mode = 'create' }: LessonFormProps) => {
             <Button
               variant="contained"
               startIcon={state.publishStatus.isPublishing ? <CircularProgress size={16} /> : <Update />}
-              onClick={handleUpdate}
+              onClick={() => handleUpdate(false)}
               disabled={!validation.isValid || !showChangesIndicator || state.publishStatus.isPublishing}
               color="primary"
             >

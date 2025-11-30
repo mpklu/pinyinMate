@@ -59,8 +59,17 @@ export const useLessonBuilder = () => {
           ...prev, 
           ...parsed, 
           lscsLevel: correctedLscsLevel,
-          isProcessing: false 
+          isProcessing: false,
+          publishStatus: {
+            isPublishing: false,
+            lastPublishSuccess: false,
+          },
         }));
+        
+        // Show resume notification if it's an edit session
+        if (parsed.mode === 'edit' && parsed.originalLesson) {
+          console.log('Resumed editing:', parsed.title || parsed.id);
+        }
       } catch (error) {
         console.error('Failed to load draft:', error);
       }
@@ -249,8 +258,33 @@ export const useLessonBuilder = () => {
     }
   }, [state.originalLesson, state.lessonSource, state.originalSha, loadLesson]);
 
+  // Helper: Check for GitHub conflicts
+  const checkForConflicts = async (
+    lessonSource: LessonSource,
+    originalSha: string,
+    lessonPath: string
+  ): Promise<void> => {
+    const owner = lessonSource.sourceId === 'lscs-depot' ? 'gelileo' : '';
+    const repo = lessonSource.sourceId === 'lscs-depot' ? 'chinese-lesson-depot' : '';
+    
+    if (!owner || !repo) return;
+
+    const { getFileSha } = await import('../services/githubFetchService');
+    const currentSha = await getFileSha(owner, repo, lessonPath);
+    
+    if (currentSha && currentSha !== originalSha) {
+      const error = new Error(
+        'CONFLICT: This lesson has been modified by another user since you started editing. ' +
+        'Please reload the lesson to see the latest version, or use force update to overwrite.'
+      );
+      (error as any).code = 'CONFLICT';
+      (error as any).currentSha = currentSha;
+      throw error;
+    }
+  };
+
   // Update existing lesson on GitHub
-  const updateLesson = useCallback(async () => {
+  const updateLesson = useCallback(async (options?: { force?: boolean }) => {
     if (!state.originalLesson || !state.lessonSource || !state.validation.isValid) {
       throw new Error('Cannot update: missing original lesson or validation failed');
     }
@@ -261,6 +295,11 @@ export const useLessonBuilder = () => {
     }));
 
     try {
+      // Check for conflicts unless force update
+      if (!options?.force && state.originalSha) {
+        await checkForConflicts(state.lessonSource, state.originalSha, state.lessonSource.path);
+      }
+
       const currentLesson = generateLessonJSON(state);
       const diff = calculateDiff(state.originalLesson, currentLesson);
       const commitMessage = generateCommitMessage(diff, currentLesson.title);
@@ -286,12 +325,13 @@ export const useLessonBuilder = () => {
         }));
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setState(prev => ({
         ...prev,
         publishStatus: {
           isPublishing: false,
           lastPublishSuccess: false,
-          lastPublishError: error instanceof Error ? error.message : 'Unknown error',
+          lastPublishError: errorMessage,
         },
       }));
       throw error;
