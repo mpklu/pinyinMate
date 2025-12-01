@@ -218,9 +218,9 @@ export const useLessonBuilder = () => {
   ) => {
     const lscsLevel = lesson.metadata.lscsLevel || getLSCSLevelFromDifficulty(lesson.metadata.difficulty);
     
-    setState(prev => ({
-      ...prev,
-      mode: 'edit',
+    const newState = {
+      ...initialState,
+      mode: 'edit' as const,
       originalLesson: lesson,
       lessonSource: source,
       originalSha: sha,
@@ -238,7 +238,12 @@ export const useLessonBuilder = () => {
       suggestedVocabulary: [],
       isDirty: false,
       browserOpen: false,
-    }));
+    };
+    
+    setState(newState);
+    
+    // Save to localStorage immediately to prevent old draft from being restored
+    localStorage.setItem('lesson-builder-draft', JSON.stringify(newState));
   }, []);
 
   // Check if current lesson has changes from original
