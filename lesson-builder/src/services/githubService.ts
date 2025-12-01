@@ -104,7 +104,99 @@ export async function publishLessonToGitHub(lesson: Lesson, lscsLevel: LSCSLevel
 }
 
 /**
- * Generate descriptive commit message
+ * Update an existing lesson on GitHub with SHA tracking for safe updates
+ */
+export async function updateLessonOnGitHub(
+  lesson: Lesson,
+  lscsLevel: LSCSLevel,
+  currentSha: string,
+  commitMessage?: string
+): Promise<GitHubCommitResponse> {
+  const token = import.meta.env.VITE_GITHUB_TOKEN;
+  const owner = import.meta.env.VITE_GITHUB_OWNER;
+  const repo = import.meta.env.VITE_GITHUB_REPO;
+  const branch = import.meta.env.VITE_GITHUB_BRANCH || 'main';
+
+  if (!token || !owner || !repo) {
+    throw new Error('GitHub configuration is missing. Please check environment variables.');
+  }
+
+  if (!currentSha) {
+    throw new Error('SHA is required for updating existing lessons');
+  }
+
+  // Determine file path based on LSCS level
+  const filePath = `lessons/${lscsLevel}/${lesson.id}.json`;
+  
+  // Use provided commit message or generate default
+  const finalCommitMessage = commitMessage || generateUpdateCommitMessage(lesson);
+  
+  // Prepare lesson file content (add LSCS level to metadata)
+  const lessonWithLSCS = {
+    ...lesson,
+    metadata: {
+      ...lesson.metadata,
+      lscsLevel,
+      updatedAt: new Date().toISOString()
+    }
+  };
+  const content = JSON.stringify(lessonWithLSCS, null, 2);
+  const encodedContent = utf8ToBase64(content);
+  
+  try {
+    // Update the file with SHA
+    const response = await fetch(
+      `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${filePath}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: finalCommitMessage,
+          content: encodedContent,
+          branch: branch,
+          sha: currentSha, // Required for updates
+        }),
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.json();
+      
+      // Check for conflict (SHA mismatch)
+      if (response.status === 409 || error.message?.includes('does not match')) {
+        throw new Error('Conflict: Lesson has been modified by another user. Please pull the latest version and try again.');
+      }
+      
+      throw new Error(`GitHub API error: ${error.message || response.statusText}`);
+    }
+    
+    const result = await response.json();
+    
+    // Update manifest after successful lesson update
+    try {
+      await updateRepositoryManifest(lesson, lscsLevel);
+    } catch (manifestError) {
+      console.warn('Lesson updated successfully but manifest update failed:', manifestError);
+    }
+    
+    return {
+      success: true,
+      sha: result.content.sha,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Generate descriptive commit message for new lessons
  */
 function generateCommitMessage(lesson: Lesson): string {
   const { title, metadata } = lesson;
@@ -119,6 +211,19 @@ function generateCommitMessage(lesson: Lesson): string {
 - Estimated time: ${metadata.estimatedTime} minutes
 
 Content: ${contentPreview}${lesson.content.length > 50 ? '...' : ''}`;
+}
+
+/**
+ * Generate commit message for lesson updates
+ */
+function generateUpdateCommitMessage(lesson: Lesson): string {
+  const { title, metadata } = lesson;
+  
+  return `Update lesson: ${title}
+
+- Vocabulary: ${metadata.vocabulary.length} words
+- Character count: ${metadata.characterCount}
+- Estimated time: ${metadata.estimatedTime} minutes`;
 }
 
 /**

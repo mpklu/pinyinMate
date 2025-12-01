@@ -1,17 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import type {
   LessonBuilderState,
+  LessonSource,
   VocabularyEntry,
-  ValidationResult,
   Lesson,
   DifficultyLevel,
 } from '../types';
 import { validateLesson } from '../utils/validation';
 import { analyzeChineseText } from '../utils/textAnalysis';
 import { generateLessonJSON } from '../services/lessonGenerator';
-import { publishLessonToGitHub } from '../services/githubService';
+import { publishLessonToGitHub, updateLessonOnGitHub } from '../services/githubService';
+import { calculateDiff, hasChanges as diffHasChanges, generateCommitMessage } from '../services/lessonDiffService';
 import type { LSCSLevel } from '../utils/lscsMapping';
-import { getDefaultLSCSLevel } from '../utils/lscsMapping';
+import { getDefaultLSCSLevel, getLSCSLevelFromDifficulty } from '../utils/lscsMapping';
 import { debugLessonState } from '../utils/debug';
 
 const initialState: LessonBuilderState = {
@@ -34,6 +35,11 @@ const initialState: LessonBuilderState = {
     isPublishing: false,
     lastPublishSuccess: false,
   },
+  mode: 'create',
+  browserOpen: false,
+  availableLessons: [],
+  lessonSearchQuery: '',
+  isLoadingLessons: false,
 };
 
 export const useLessonBuilder = () => {
@@ -53,8 +59,17 @@ export const useLessonBuilder = () => {
           ...prev, 
           ...parsed, 
           lscsLevel: correctedLscsLevel,
-          isProcessing: false 
+          isProcessing: false,
+          publishStatus: {
+            isPublishing: false,
+            lastPublishSuccess: false,
+          },
         }));
+        
+        // Show resume notification if it's an edit session
+        if (parsed.mode === 'edit' && parsed.originalLesson) {
+          console.log('Resumed editing:', parsed.title || parsed.id);
+        }
       } catch (error) {
         console.error('Failed to load draft:', error);
       }
@@ -188,7 +203,168 @@ export const useLessonBuilder = () => {
       }));
       throw error;
     }
-  }, [state.lscsLevel]); // Add lscsLevel as dependency to capture current value
+  }, [state.lscsLevel]);
+
+  // Mode management
+  const switchMode = useCallback((mode: 'create' | 'edit') => {
+    setState(prev => ({ ...prev, mode, browserOpen: mode === 'edit' }));
+  }, []);
+
+  // Load existing lesson for editing
+  const loadLesson = useCallback((
+    lesson: Lesson,
+    source: LessonSource,
+    sha?: string
+  ) => {
+    const lscsLevel = lesson.metadata.lscsLevel || getLSCSLevelFromDifficulty(lesson.metadata.difficulty);
+    
+    const newState = {
+      ...initialState,
+      mode: 'edit' as const,
+      originalLesson: lesson,
+      lessonSource: source,
+      originalSha: sha,
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      content: lesson.content,
+      difficulty: lesson.metadata.difficulty,
+      lscsLevel,
+      tags: lesson.metadata.tags,
+      source: lesson.metadata.source,
+      book: lesson.metadata.book,
+      estimatedTime: lesson.metadata.estimatedTime,
+      vocabulary: lesson.metadata.vocabulary,
+      suggestedVocabulary: [],
+      isDirty: false,
+      browserOpen: false,
+    };
+    
+    setState(newState);
+    
+    // Save to localStorage immediately to prevent old draft from being restored
+    localStorage.setItem('lesson-builder-draft', JSON.stringify(newState));
+  }, []);
+
+  // Check if current lesson has changes from original
+  const hasChanges = useCallback((): boolean => {
+    if (!state.originalLesson) return true; // New lesson
+
+    const currentLesson = generateLessonJSON(state);
+    const diff = calculateDiff(state.originalLesson, currentLesson);
+
+    return diffHasChanges(diff);
+  }, [state, generateLessonJSON]);
+
+  // Revert to original lesson
+  const revertChanges = useCallback(() => {
+    if (state.originalLesson && state.lessonSource) {
+      loadLesson(state.originalLesson, state.lessonSource, state.originalSha);
+    }
+  }, [state.originalLesson, state.lessonSource, state.originalSha, loadLesson]);
+
+  // Helper: Check for GitHub conflicts
+  const checkForConflicts = async (
+    lessonSource: LessonSource,
+    originalSha: string,
+    lessonPath: string
+  ): Promise<void> => {
+    const owner = lessonSource.sourceId === 'lscs-depot' ? 'gelileo' : '';
+    const repo = lessonSource.sourceId === 'lscs-depot' ? 'chinese-lesson-depot' : '';
+    
+    if (!owner || !repo) return;
+
+    const { getFileSha } = await import('../services/githubFetchService');
+    const currentSha = await getFileSha(owner, repo, lessonPath);
+    
+    if (currentSha && currentSha !== originalSha) {
+      const error = new Error(
+        'CONFLICT: This lesson has been modified by another user since you started editing. ' +
+        'Please reload the lesson to see the latest version, or use force update to overwrite.'
+      );
+      (error as any).code = 'CONFLICT';
+      (error as any).currentSha = currentSha;
+      throw error;
+    }
+  };
+
+  // Update existing lesson on GitHub
+  const updateLesson = useCallback(async (options?: { force?: boolean }) => {
+    if (!state.originalLesson || !state.lessonSource || !state.validation.isValid) {
+      throw new Error('Cannot update: missing original lesson or validation failed');
+    }
+
+    setState(prev => ({
+      ...prev,
+      publishStatus: { ...prev.publishStatus, isPublishing: true },
+    }));
+
+    try {
+      // Check for conflicts unless force update
+      if (!options?.force && state.originalSha) {
+        await checkForConflicts(state.lessonSource, state.originalSha, state.lessonSource.path);
+      }
+
+      const currentLesson = generateLessonJSON(state);
+      const diff = calculateDiff(state.originalLesson, currentLesson);
+      const commitMessage = generateCommitMessage(diff, currentLesson.title);
+
+      const result = await updateLessonOnGitHub(
+        currentLesson,
+        state.lscsLevel as LSCSLevel,
+        state.originalSha || '',
+        commitMessage
+      );
+
+      if (result.success) {
+        setState(prev => ({
+          ...prev,
+          originalLesson: currentLesson,
+          originalSha: result.sha,
+          isDirty: false,
+          publishStatus: {
+            isPublishing: false,
+            lastPublishSuccess: true,
+            lastPublishError: undefined,
+          },
+        }));
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setState(prev => ({
+        ...prev,
+        publishStatus: {
+          isPublishing: false,
+          lastPublishSuccess: false,
+          lastPublishError: errorMessage,
+        },
+      }));
+      throw error;
+    }
+  }, [state, generateLessonJSON]);
+
+  // Toggle lesson browser
+  const toggleBrowser = useCallback((open?: boolean) => {
+    setState(prev => ({
+      ...prev,
+      browserOpen: open ?? !prev.browserOpen,
+    }));
+  }, []);
+
+  // Set available lessons
+  const setAvailableLessons = useCallback((lessons: any[]) => {
+    setState(prev => ({ ...prev, availableLessons: lessons }));
+  }, []);
+
+  // Set lesson search query
+  const setLessonSearchQuery = useCallback((query: string) => {
+    setState(prev => ({ ...prev, lessonSearchQuery: query }));
+  }, []);
+
+  // Set loading lessons state
+  const setLoadingLessons = useCallback((loading: boolean) => {
+    setState(prev => ({ ...prev, isLoadingLessons: loading }));
+  }, []);
 
   return {
     state,
@@ -202,5 +378,16 @@ export const useLessonBuilder = () => {
     exportLesson,
     publishToGitHub,
     validation: state.validation,
+    // Edit mode methods
+    switchMode,
+    loadLesson,
+    hasChanges,
+    revertChanges,
+    updateLesson,
+    // Browser methods
+    toggleBrowser,
+    setAvailableLessons,
+    setLessonSearchQuery,
+    setLoadingLessons,
   };
 };
