@@ -26,6 +26,7 @@ import { FlashcardPage } from '../templates/FlashcardPage';
 import { QuizPage } from '../templates/QuizPage';
 import { HomePage } from '../templates/HomePage';
 import { AnnotationPage } from '../templates/AnnotationPage';
+import { MizigePage } from '../templates/MizigePage';
 import { performanceMonitor } from '../../utils/performanceMonitor';
 import { libraryService } from '../../services/libraryService';
 import { librarySourceService } from '../../services/librarySourceService';
@@ -298,6 +299,7 @@ export const HomePageRoute = () => {
       onStartQuiz={() => navigate('/quiz')}
       onStartFlashcards={() => navigate('/flashcards')}
       onViewLibrary={() => navigate('/library')}
+      onStartMizige={() => navigate('/mizige')}
     />
   );
 };
@@ -330,6 +332,20 @@ export const AnnotationPageRoute = () => {
         // Handle share - could open share dialog or copy to clipboard
         console.log('Annotation shared:', result);
       }}
+    />
+  );
+};
+
+/**
+ * Route wrapper for MizigePage that provides navigation callbacks
+ */
+export const MizigePageRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <MizigePage
+      onBack={() => navigate(-1)}
+      onHome={() => navigate('/')}
     />
   );
 };

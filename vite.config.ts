@@ -41,7 +41,13 @@ export default defineConfig({
           // Chinese language processing
           'chinese-processing': [
             'pinyin-pro',
-            // Add other Chinese processing libraries here
+          ],
+
+          // Mizige character practice
+          'mizige': [
+            'hanzi-writer',
+            'html2canvas-pro',
+            'lxgw-wenkai-webfont',
           ],
           
           // Audio processing

@@ -42,9 +42,15 @@ export const QuizPage = lazy(() =>
   }))
 );
 
-export const LessonPage = lazy(() => 
-  import('../components/templates/LessonPage').then(module => ({ 
-    default: module.LessonPage 
+export const LessonPage = lazy(() =>
+  import('../components/templates/LessonPage').then(module => ({
+    default: module.LessonPage
+  }))
+);
+
+export const MizigePage = lazy(() =>
+  import('../components/routes/RouteWrappers').then(module => ({
+    default: module.MizigePageRoute
   }))
 );
 

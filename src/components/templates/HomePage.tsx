@@ -19,7 +19,7 @@ import {
   Translate,
   Quiz,
   Book,
-  Download,
+  Draw,
   School,
   VolumeUp,
 } from '@mui/icons-material';
@@ -64,6 +64,8 @@ export interface HomePageProps {
   onStartFlashcards?: () => void;
   /** Callback when user wants to view library */
   onViewLibrary?: () => void;
+  /** Callback when user wants to practice mizige */
+  onStartMizige?: () => void;
 }
 
 interface Feature {
@@ -80,6 +82,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onStartQuiz,
   onStartFlashcards,
   onViewLibrary,
+  onStartMizige,
 }) => {
   const features: Feature[] = [
     {
@@ -115,12 +118,12 @@ export const HomePage: React.FC<HomePageProps> = ({
       onClick: () => {}, // Placeholder
     },
     {
-      id: 'export',
-      title: 'Export Materials',
-      description: 'Export your study materials to PDF, CSV, or other formats for external use.',
-      icon: <Download fontSize="large" />,
-      action: 'Export Data',
-      onClick: () => {}, // Placeholder
+      id: 'mizige',
+      title: '米字格',
+      description: 'Practice Chinese character writing with stroke-order animation, tracing quizzes, and printable worksheets.',
+      icon: <Draw fontSize="large" />,
+      action: 'Practice Writing',
+      onClick: onStartMizige,
     },
     {
       id: 'library',
@@ -163,8 +166,8 @@ export const HomePage: React.FC<HomePageProps> = ({
               variant="outlined"
               size="large"
               onClick={onViewLibrary}
-              sx={{ 
-                borderColor: 'white', 
+              sx={{
+                borderColor: 'white',
                 color: 'white',
                 '&:hover': {
                   borderColor: 'white',
@@ -173,6 +176,21 @@ export const HomePage: React.FC<HomePageProps> = ({
               }}
             >
               View Library
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={onStartMizige}
+              sx={{
+                borderColor: 'white',
+                color: 'white',
+                '&:hover': {
+                  borderColor: 'white',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                }
+              }}
+            >
+              米字格
             </Button>
           </Stack>
         </Container>

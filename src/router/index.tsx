@@ -5,15 +5,16 @@
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { Suspense } from 'react';
 import { Box, CircularProgress } from '@mui/material';
-import { 
-  HomePage, 
-  LibraryPage, 
+import {
+  HomePage,
+  LibraryPage,
   SourceLessonsPage,
-  AnnotationPage, 
-  FlashcardPage, 
+  AnnotationPage,
+  FlashcardPage,
   QuizPage,
   LessonPage,
-  preloadServices 
+  MizigePage,
+  preloadServices
 } from '../utils/lazyLoading';
 
 // Loading fallback component
@@ -145,6 +146,10 @@ export const router = createBrowserRouter([
           preloadServices.audio();
           return null;
         }
+      },
+      {
+        path: "mizige",
+        element: <MizigePage />,
       },
       {
         path: "lesson/:id",

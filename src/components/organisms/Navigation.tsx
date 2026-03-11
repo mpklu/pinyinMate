@@ -22,6 +22,7 @@ import {
   Translate,
   Quiz,
   School,
+  Draw,
   Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -54,6 +55,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     { path: '/annotate', label: 'Annotate', icon: <Translate /> },
     { path: '/quiz', label: 'Quiz', icon: <Quiz /> },
     { path: '/flashcards', label: 'Flashcards', icon: <School /> },
+    { path: '/mizige', label: '米字格', icon: <Draw /> },
   ];
 
   const handleNavigate = (path: string) => {
