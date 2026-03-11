@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+.mizige-root {
+  --ink-black: #1a1a1a;
+  --ink-dark: #0d0f12;
+  --ink-surface: #161920;
+  --ink-surface-2: #1c2028;
+  --ink-border: #2a2e38;
+  --ink-border-light: #363a46;
+  --rice-warm: #f5e6c8;
+  --rice-light: #faf3e6;
+  --rice-cream: #f0dbb8;
+  --vermillion: #e84b3a;
+  --vermillion-soft: #f0705e;
+  --ink-stroke: #2c2018;
+  --ink-trace: #d4c4a0;
+  --gold-accent: #c9a84c;
+  --gold-glow: #e8c35a;
+  --jade-accent: #5a9e7a;
+  --text-primary: #e8e0d4;
+  --text-secondary: #9a9488;
+  --text-muted: #6b665e;
+}
+
+/* Rice paper texture */
+.mizige-root .rice-paper {
+  background-color: var(--rice-warm);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(255,248,230,0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255,240,210,0.3) 0%, transparent 40%);
+}
+
+/* Animation keyframes */
+@keyframes mizigeFadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mizige-root .mizige-fade-in-up {
+  animation: mizigeFadeInUp 0.5s ease-out forwards;
+}
+
+/* Character display */
+.mizige-root .char-reference {
+  font-family: 'LXGW WenKai', serif;
+  font-weight: 700;
+}
+
+.mizige-root .char-trace {
+  font-family: 'LXGW WenKai', serif;
+  font-weight: 700;
+  opacity: 0.18;
+  color: var(--ink-stroke);
+}
+
+/* Scrollbar within mizige */
+.mizige-root ::-webkit-scrollbar {
+  width: 6px;
+}
+.mizige-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.mizige-root ::-webkit-scrollbar-thumb {
+  background: var(--ink-border);
+  border-radius: 3px;
+}
+.mizige-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-border-light);
+}
