@@ -19,7 +19,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:a11y": "vitest run tests/a11y/",
     "lighthouse": "lighthouse http://localhost:5173 --output=json --output-path=./lighthouse-report.json",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "cp -r node_modules/hanzi-writer-data public/hanzi-writer-data"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -27,7 +28,11 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
     "@types/react-router-dom": "^5.3.3",
-    "jspdf": "^3.0.3",
+    "hanzi-writer": "^3.7.3",
+    "hanzi-writer-data": "^2.0.1",
+    "html2canvas-pro": "^2.0.2",
+    "jspdf": "^4.2.0",
+    "lxgw-wenkai-webfont": "^1.7.0",
     "pinyin-pro": "^3.27.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
