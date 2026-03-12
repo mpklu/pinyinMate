@@ -3,6 +3,7 @@
 This guide covers deploying a React/Vite application to Vercel, including common issues encountered and their solutions based on real deployment experience.
 
 ## Table of Contents
+
 - [Step-by-Step Deployment Guide](#step-by-step-deployment-guide)
 - [Configuration Files](#configuration-files)
 - [Common Issues & Solutions](#common-issues--solutions)
@@ -14,6 +15,7 @@ This guide covers deploying a React/Vite application to Vercel, including common
 ### 1. Initial Setup
 
 1. **Install Vercel CLI**
+
    ```bash
    npm install -g vercel
    ```
@@ -26,6 +28,7 @@ This guide covers deploying a React/Vite application to Vercel, including common
 ### 2. Project Preparation
 
 1. **Ensure your build script works locally**
+
    ```bash
    npm run build
    npm run preview  # Test the built version
@@ -48,14 +51,17 @@ This guide covers deploying a React/Vite application to Vercel, including common
 ### 3. Deployment Process
 
 1. **Initial deployment**
+
    ```bash
    vercel
    ```
+
    - Follow interactive prompts
    - Choose project settings
    - Get preview URL
 
 2. **Production deployment**
+
    ```bash
    vercel --prod
    ```
@@ -63,6 +69,12 @@ This guide covers deploying a React/Vite application to Vercel, including common
    ```bash
    npm run build && vercel --prod
    ```
+
+or when vercel warns file number exceeds max limit
+
+```
+vercel --prod --archive=tgz 2>&1
+```
 
 3. **Verify deployment**
    - Test the provided URL
@@ -87,6 +99,7 @@ This guide covers deploying a React/Vite application to Vercel, including common
 ```
 
 **Key Points:**
+
 - `buildCommand`: Command to build your application
 - `outputDirectory`: Directory containing built files (usually `dist` for Vite)
 - `rewrites`: Handle SPA routing by excluding static assets
@@ -94,6 +107,7 @@ This guide covers deploying a React/Vite application to Vercel, including common
 ### Critical Rewrite Pattern
 
 The rewrite pattern `/((?!assets|vite\\.svg|manifest\\.json|lessons).*)` ensures:
+
 - Static assets in `/assets/` are served directly
 - Specific files like `vite.svg`, `manifest.json` are served directly
 - Custom directories like `/lessons/` are served directly
@@ -107,7 +121,8 @@ The rewrite pattern `/((?!assets|vite\\.svg|manifest\\.json|lessons).*)` ensures
 
 **Cause**: Vercel routing configuration intercepting API/JSON requests and serving `index.html`.
 
-**Solution**: 
+**Solution**:
+
 - Embed JSON configuration directly in JavaScript
 - Use ES6 imports instead of fetch for configuration data
 - Update rewrite patterns to exclude your JSON endpoints
@@ -120,7 +135,7 @@ import config from './config/embedded-config.js';
 export default {
   sources: [
     // your configuration
-  ]
+  ],
 };
 ```
 
@@ -146,7 +161,9 @@ export default {
 **Cause**: Browser CORS policies block requests to external domains.
 
 **Solutions**:
+
 1. **Graceful Error Handling** (Recommended for non-critical features):
+
    ```typescript
    async function loadExternalData() {
      try {
@@ -195,6 +212,7 @@ export default {
 **Cause**: Stricter production build settings or missing type definitions.
 
 **Solutions**:
+
 - Fix TypeScript errors locally first
 - Use proper type imports: `import type { Type } from './types'`
 - Ensure all dependencies have proper type definitions
@@ -204,6 +222,7 @@ export default {
 ### Q: Why does my app work locally but not on Vercel?
 
 **A**: Common causes:
+
 1. Different Node.js versions
 2. Missing environment variables
 3. Routing configuration issues
@@ -212,7 +231,8 @@ export default {
 
 ### Q: How do I debug routing issues?
 
-**A**: 
+**A**:
+
 1. Check browser network tab for 404s
 2. Verify `vercel.json` rewrite patterns
 3. Test specific routes directly in browser
@@ -221,6 +241,7 @@ export default {
 ### Q: Why are my JSON files returning HTML?
 
 **A**: Your rewrite pattern is too broad and intercepting JSON requests. Either:
+
 1. Exclude JSON files in rewrite pattern
 2. Embed JSON data in JavaScript modules
 3. Move JSON files to excluded directories
@@ -228,6 +249,7 @@ export default {
 ### Q: How do I handle external API failures gracefully?
 
 **A**: Implement try-catch blocks with fallback data:
+
 ```typescript
 try {
   const data = await fetchExternalAPI();
@@ -240,7 +262,8 @@ try {
 
 ### Q: My build succeeds but the site is broken. What now?
 
-**A**: 
+**A**:
+
 1. Check the Vercel deployment logs
 2. Open browser developer console for client-side errors
 3. Test the production build locally: `npm run build && npm run preview`
@@ -249,26 +272,31 @@ try {
 ## Best Practices
 
 ### 1. Configuration Management
+
 - Keep JSON configs in JavaScript modules for better build integration
 - Use environment variables for API keys and URLs
 - Test configuration loading in both development and production
 
 ### 2. Error Handling
+
 - Implement graceful degradation for non-critical external services
 - Use try-catch blocks around all external API calls
 - Provide user-friendly error messages
 
 ### 3. Routing Setup
+
 - Start with restrictive rewrite patterns and expand as needed
 - Always exclude static asset directories
 - Test all routes after deployment
 
 ### 4. Performance Optimization
+
 - Minimize external API calls during initial load
 - Cache external data when possible
 - Use lazy loading for non-critical features
 
 ### 5. Development Workflow
+
 ```bash
 # 1. Test locally
 npm run build
@@ -283,6 +311,7 @@ vercel --prod
 ```
 
 ### 6. Monitoring and Debugging
+
 - Add console.debug statements for production debugging
 - Use Vercel's built-in analytics
 - Monitor deployment logs regularly
@@ -293,6 +322,7 @@ vercel --prod
 Based on our successful deployment, here's a proven configuration:
 
 **vercel.json**:
+
 ```json
 {
   "buildCommand": "npm run build",
@@ -307,6 +337,7 @@ Based on our successful deployment, here's a proven configuration:
 ```
 
 **Service Architecture**:
+
 ```typescript
 // Embed config instead of fetching
 import defaultSources from './config/embedded-sources.js';
@@ -322,7 +353,7 @@ export class LibrarySourceService {
       this.sources = defaultSources;
     }
   }
-  
+
   async loadExternalSources() {
     try {
       // Attempt external loading without blocking

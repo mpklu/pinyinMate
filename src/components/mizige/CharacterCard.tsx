@@ -23,7 +23,7 @@ function CharacterCardBase({
 
   const borderColor = '#c4a882';
   const guideColor = '#dbc8a8';
-  const scale = size / REF_SIZE;
+  const scaledPadding = Math.round(REF_PADDING * (size / REF_SIZE));
 
   const startAnimation = useCallback(() => {
     const writer = writerRef.current;
@@ -53,9 +53,9 @@ function CharacterCardBase({
     if (!container) return;
 
     const writer = HanziWriter.create(container, char, {
-      width: REF_SIZE,
-      height: REF_SIZE,
-      padding: REF_PADDING,
+      width: size,
+      height: size,
+      padding: scaledPadding,
       strokeColor: '#2c2018',
       highlightColor: '#e84b3a',
       radicalColor: '#2c2018',
@@ -91,7 +91,7 @@ function CharacterCardBase({
       }
       writerRef.current = null;
     };
-  }, [char, onQuizComplete]);
+  }, [char, size, scaledPadding, onQuizComplete]);
 
   const handleReplay = useCallback(() => {
     const writer = writerRef.current;
@@ -108,23 +108,20 @@ function CharacterCardBase({
           {pinyin}
         </div>
       )}
-      <div style={{ width: size, height: size }}>
-        <div
-          style={{
-            position: 'relative',
-            borderRadius: 8,
-            overflow: 'hidden',
-            width: REF_SIZE,
-            height: REF_SIZE,
-            background: '#f5e6c8',
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-          }}
-        >
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: 8,
+          overflow: 'hidden',
+          width: size,
+          height: size,
+          background: '#f5e6c8',
+        }}
+      >
           <svg
             style={{ position: 'absolute', inset: 0, zIndex: 0 }}
-            width={REF_SIZE}
-            height={REF_SIZE}
+            width={size}
+            height={size}
             viewBox="0 0 1024 1024"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -139,7 +136,6 @@ function CharacterCardBase({
             )}
           </svg>
           <div ref={containerRef} style={{ position: 'absolute', inset: 0, zIndex: 1 }} />
-        </div>
       </div>
       <div style={{ textAlign: 'center', fontSize: 14, color: '#8b7355' }}>
         {strokeCount} strokes &middot; {phase === 'watch' ? 'Watch' : 'Your turn'}
